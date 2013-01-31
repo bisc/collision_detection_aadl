@@ -1,6 +1,7 @@
 package basic_devices
 	public
 	with Timing_Properties;
+	with Communication_Properties;
 	with basic_debian;
 	
 	device sensor
@@ -60,29 +61,47 @@ package basic_devices
 	device implementation sensor.driver_impaired
 	end sensor.driver_impaired;
 	
+	device implementation sensor.system_spoken_to
+	end sensor.system_spoken_to;
+	
 	------------------------------------------------------------------------------------------
 	
 	device receiver
+		features
+			received_broadcast:in event data port;
+			ba:requires bus access basic_debian::basic_bus.standard;
 	end receiver;
+	
+	--Receiver Implementations
 	
 	------------------------------------------------------------------------------------------
 	
 	device broadcaster
+		features
+			received_broadcast:out event data port;
+			ba:requires bus access basic_debian::basic_bus.standard;
 	end broadcaster;
+	
+	--Broadcaster Implementations
 	
 	------------------------------------------------------------------------------------------
 	
 	device microphone
+		features
+			spoken_command:in data port;
+			ba:requires bus access basic_debian::basic_bus.standard;
 	end microphone;
+	
+	--Microphone Implementations
 	
 	------------------------------------------------------------------------------------------
 	
 	device speaker
+		features
+			audio:out data port;
+			ba:requires bus access basic_debian::basic_bus.standard;
 	end speaker;
 	
-	------------------------------------------------------------------------------------------
-	
-	device fan
-	end fan;
-	
+	--Speaker Implementations
+		
 end basic_devices;
