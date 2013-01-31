@@ -1,4 +1,4 @@
-package basic_platform
+package basic_debian
 	public
 	with Communication_Properties;
 	
@@ -25,4 +25,4 @@ package basic_platform
 	
 	bus implementation basic_bus.standard
 	end basic_bus.standard;
-end basic_platform;
+end basic_debian;
