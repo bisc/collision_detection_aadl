@@ -13,15 +13,12 @@ package basic_devices
 	end sensor;
 	
 	--Sensor Implementations
-	device implementation sensor.speed
-	end sensor.speed;
-	
-	device implementation sensor.heat
-	end sensor.heat;
-	
 	device implementation sensor.motion
 	end sensor.motion;
-	
+
+	device implementation sensor.speed
+	end sensor.speed;
+		
 	device implementation sensor.frontal_debris
 	end sensor.frontal_debris;
 	

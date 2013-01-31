@@ -1,0 +1,17 @@
+package prediction_system
+	public
+	with basic_debian;
+	with basic_devices;
+	
+	thread read_data
+		features
+			sensor_data: in data port;
+			processed_data: out data port;
+		properties
+			Dispatch_Protocol => Periodic;
+			Compute_Execution_Time => 1ms .. 10ms;
+			Period => 50ms;
+	end read_data;
+	
+	 
+end prediction_system;
