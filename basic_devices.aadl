@@ -1,0 +1,88 @@
+package basic_devices
+	public
+	with Timing_Properties;
+	with basic_debian;
+	
+	device sensor
+		features
+			sensor_data:out data port;
+			ba:requires bus access basic_debian::basic_bus.standard;
+		properties
+			Timing_Properties::Period => 50ms;
+	end sensor;
+	
+	--Sensor Implementations
+	device implementation sensor.speed
+	end sensor.speed;
+	
+	device implementation sensor.heat
+	end sensor.heat;
+	
+	device implementation sensor.motion
+	end sensor.motion;
+	
+	device implementation sensor.frontal_debris
+	end sensor.frontal_debris;
+	
+	device implementation sensor.rear_debris
+	end sensor.rear_debris;
+	
+	device implementation sensor.frontal_vehicle
+	end sensor.frontal_vehicle;
+	
+	device implementation sensor.rear_vehicle
+	end sensor.rear_vehicle;
+	
+	device implementation sensor.side_vehicle
+	end sensor.side_vehicle;
+	
+	device implementation sensor.tire_pressure
+	end sensor.tire_pressure;
+	
+	device implementation sensor.tire_tread
+	end sensor.tire_tread;
+	
+	device implementation sensor.wheel_slippage
+	end sensor.wheel_slippage;
+	
+	device implementation sensor.brake_depth
+	end sensor.brake_depth;
+	
+	device implementation sensor.road_conditions
+	end sensor.road_conditions;
+	
+	device implementation sensor.visibility
+	end sensor.visibility;
+	
+	device implementation sensor.driver_responsive
+	end sensor.driver_responsive;
+	
+	device implementation sensor.driver_impaired
+	end sensor.driver_impaired;
+	
+	------------------------------------------------------------------------------------------
+	
+	device receiver
+	end receiver;
+	
+	------------------------------------------------------------------------------------------
+	
+	device broadcaster
+	end broadcaster;
+	
+	------------------------------------------------------------------------------------------
+	
+	device microphone
+	end microphone;
+	
+	------------------------------------------------------------------------------------------
+	
+	device speaker
+	end speaker;
+	
+	------------------------------------------------------------------------------------------
+	
+	device fan
+	end fan;
+	
+end basic_devices;
