@@ -1,4 +1,4 @@
-package basic_system
+package basic_platform
 	public
 	with Communication_Properties;
 	
@@ -25,4 +25,4 @@ package basic_system
 	
 	bus implementation basic_bus.standard
 	end basic_bus.standard;
-end basic_system;
+end basic_platform;
