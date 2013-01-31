@@ -1,4 +1,4 @@
-package vehicle
+package vehicle_devices
 	public
 	
 	device brakes
@@ -81,4 +81,15 @@ package vehicle
 	device implementation nudger.passenger
 	end nudger.passenger;
 	
-end vehicle;
+	------------------------------------------------------------------------------------------
+	
+	device wheels
+		features
+			straighten: in event port;
+			turn: in event port;
+	end wheels;
+	
+	device implementation wheels.vehicle
+	end wheels.vehicle;
+	
+end vehicle_devices;
