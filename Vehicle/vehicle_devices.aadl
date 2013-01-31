@@ -1,0 +1,84 @@
+package vehicle
+	public
+	
+	device brakes
+		features
+			engage: in event port;
+			disengage: in event port;
+	end brakes;
+	
+	device implementation brakes.vehicle
+	end brakes.vehicle;
+	
+	device accelerator
+		features
+			accelerate: in event port;
+			decelerate: in event port;
+	end accelerator;
+	
+	device implementation accelerator.vehicle
+	end accelerator.vehicle;
+	
+	------------------------------------------------------------------------------------------
+	
+	device seatbelt
+		features
+			tighten: in event port;
+	end seatbelt;
+	
+	device implementation seatbelt.driver
+	end seatbelt.driver;
+	
+	device implementation seatbelt.passenger
+	end seatbelt.passenger;
+	
+	------------------------------------------------------------------------------------------
+	
+	device headrest
+		features
+			adjust: in event port;
+	end headrest;
+	
+	device implementation headrest.driver
+	end headrest.driver;
+	
+	device implementation headrest.passenger
+	end headrest.passenger;
+	
+	------------------------------------------------------------------------------------------
+	
+	device seat
+		features
+			adjust: in event port;
+	end seat;
+	
+	device implementation seat.driver
+	end seat.driver;
+	
+	device implementation seat.passenger
+	end seat.passenger;
+	
+	------------------------------------------------------------------------------------------
+	
+	device airbags
+		features
+			deploy: in event port;
+	end airbags;
+	
+	device implementation airbags.vehicle
+	end airbags.vehicle;
+	
+	------------------------------------------------------------------------------------------
+	
+	device nudger
+		features
+			adjust_seat_occupant: in event port;
+	end nudger;
+	
+	device implementation nudger.driver
+	end nudger.driver;
+	
+	device implementation nudger.passenger
+	end nudger.passenger;
+	
+end vehicle;
