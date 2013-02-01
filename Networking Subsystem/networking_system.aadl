@@ -21,7 +21,7 @@ package networking_system
 			message: out data port;
 			message_data: in data port;
 		properties
-			Dispatch_Protocol => Periodic;
+			Dispatch_Protocol => Sporadic;
 			Compute_Execution_Time => 1ms .. 10ms;		
 	end send_shortwave_broadcast;
 	
@@ -46,7 +46,7 @@ package networking_system
 			message: out data port;
 			message_data: in data port;
 		properties
-			Dispatch_Protocol => Periodic;
+			Dispatch_Protocol => Sporadic;
 			Compute_Execution_Time => 1ms .. 10ms;	
 	end send_cellular_broadcast;
 	

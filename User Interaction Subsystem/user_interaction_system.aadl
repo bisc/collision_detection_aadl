@@ -1,4 +1,114 @@
 package user_interaction_system
 	public
+	with basic_debian;
+	with basic_devices;
+	
+	thread play_audio
+		features
+			text: in data port;
+			audio: out data port;
+		properties
+			Dispatch_Protocol => Sporadic;	
+			Compute_Execution_Time => 1ms .. 10ms;
+	end play_audio;
+	
+	thread implementation play_audio.standard
+	end play_audio.standard;
+	
+	thread listen_for_audio
+		features
+			audio_available: out event data port;
+		properties
+			Dispatch_Protocol => Periodic;
+			Compute_Execution_Time => 1ms .. 10ms;
+			Period => 50ms;
+	end listen_for_audio;
+	
+	thread implementation listen_for_audio.standard
+	end listen_for_audio.standard;
+	
+	thread convert_to_text
+		features
+			audio: in data port;
+			text: out data port;
+		properties
+			Dispatch_Protocol => Sporadic;	
+			Compute_Execution_Time => 1ms .. 10ms;	
+	end convert_to_text;
+	
+	thread implementation convert_to_text.standard
+	end convert_to_text.standard;
+	
+	------------------------------------------------------------------------------------------
+	
+	process speaker_controller
+		features
+			message: in data port;
+			audio: out data port;
+	end speaker_controller;
+	
+	process implementation speaker_controller.standard
+		subcomponents
+			audio_player: thread play_audio.standard;
+		connections
+			text_to_convert: port message -> audio_player.text;
+			audio_to_play: port audio_player.audio -> audio;
+	end speaker_controller.standard;
+	
+	process microphone_controller
+		features
+			sensor_ready: in event data port;
+			text: out data port;
+	end microphone_controller;
+	
+	process implementation microphone_controller.standard
+		subcomponents
+			microphone_sensor: thread listen_for_audio.standard;
+			microphone: thread convert_to_text.standard;
+		connections
+			audio_available: port microphone_sensor.audio_available -> microphone.audio;
+			converted_audio: port microphone.text -> text;
+	end microphone_controller.standard;
+	
+	------------------------------------------------------------------------------------------
+	
+	system user_interaction_system
+	end user_interaction_system;
+	
+	system implementation user_interaction_system.standard
+		subcomponents
+			microphone: device basic_devices::microphone.in_vehicle;
+			speaker: device basic_devices::speaker.in_vehicle;
+			system_spoken_to: device basic_devices::sensor.system_spoken_to;
+		
+			speaker_controller: process speaker_controller.standard;
+			microphone_controller: process microphone_controller.standard;
+		
+			bus_driver: device basic_devices::bus_driver.standard;
+			event_distributor: device basic_devices::event_distributor.standard;
+		
+			vehicle_processor: processor basic_debian::real_time.one_ghz;
+			vehicle_memory: memory basic_debian::ram.standard;
+			vehicle_bus: bus basic_debian::basic_bus.standard;
+		connections 
+			microphone_connection: bus access vehicle_bus <-> microphone.ba;
+			speaker_connection: bus access vehicle_bus <-> speaker.ba;
+			
+			microphone_ready: port microphone.spoken_command -> microphone_controller.sensor_ready;
+			audio_to_play: port speaker_controller.audio -> speaker.audio;
+			
+			message_received: port microphone_controller.text -> bus_driver.event_data;
+			message_to_play: port event_distributor.event_data -> speaker_controller.message;
+		
+			distributor: bus access vehicle_bus <-> event_distributor.ba;
+			event_sender: bus access vehicle_bus <-> bus_driver.ba;
+		properties
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to speaker_controller.audio_player;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to microphone_controller.microphone_sensor;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to microphone_controller.microphone;
+		
+			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to speaker_controller;
+			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to microphone_controller;
+	end user_interaction_system.standard;
 	
 end user_interaction_system;
