@@ -7,7 +7,6 @@ package response_system
 		
 	thread event_handler
 		features 
-			read_avoidable: in event data port;
 			read_unavoidable: in event data port;
 			send_response_cmd: out event data port;
 			send_driver_alert: out event data port;
