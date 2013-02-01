@@ -106,15 +106,4 @@ package vehicle_devices
 	device implementation automatic_wheel_turner.vehicle
 	end automatic_wheel_turner.vehicle;
 	
-	------------------------------------------------------------------------------------------
-	
-	device event_distributor
-		features
-			event_data: out event data port;
-			ba: requires bus access basic_debian::basic_bus.standard;
-	end event_distributor;
-	
-	device implementation event_distributor.standard
-	end event_distributor.standard;
-	
 end vehicle_devices;
