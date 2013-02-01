@@ -1,10 +1,12 @@
 package vehicle_devices
 	public
+	with basic_debian;
 	
 	device brakes
 		features
 			engage: in event port;
 			disengage: in event port;
+			ba: requires bus access basic_debian::basic_bus.standard;
 	end brakes;
 	
 	device implementation brakes.vehicle
@@ -12,8 +14,9 @@ package vehicle_devices
 	
 	device accelerator
 		features
-			accelerate: in event port;
-			decelerate: in event port;
+			engage: in event port;
+			disengage: in event port;
+			ba: requires bus access basic_debian::basic_bus.standard;
 	end accelerator;
 	
 	device implementation accelerator.vehicle
@@ -21,58 +24,68 @@ package vehicle_devices
 	
 	------------------------------------------------------------------------------------------
 	
-	device seatbelt
+	device seatbelt_tighener
 		features
-			tighten: in event port;
-	end seatbelt;
+			engage: in event port;
+			disengage: in event port;
+			ba: requires bus access basic_debian::basic_bus.standard;
+	end seatbelt_tighener;
 	
-	device implementation seatbelt.driver
-	end seatbelt.driver;
+	device implementation seatbelt_tighener.driver
+	end seatbelt_tighener.driver;
 	
-	device implementation seatbelt.passenger
-	end seatbelt.passenger;
+	device implementation seatbelt_tighener.passenger
+	end seatbelt_tighener.passenger;
 	
 	------------------------------------------------------------------------------------------
 	
-	device headrest
+	device headrest_adjuster
 		features
-			adjust: in event port;
-	end headrest;
+			engage: in event port;
+			disengage: in event port;
+			ba: requires bus access basic_debian::basic_bus.standard;
+	end headrest_adjuster;
 	
-	device implementation headrest.driver
-	end headrest.driver;
+	device implementation headrest_adjuster.driver
+	end headrest_adjuster.driver;
 	
-	device implementation headrest.passenger
-	end headrest.passenger;
+	device implementation headrest_adjuster.passenger
+	end headrest_adjuster.passenger;
 	
 	------------------------------------------------------------------------------------------
 	
-	device seat
+	device seat_adjuster
 		features
-			adjust: in event port;
-	end seat;
+			engage: in event port;
+			disengage: in event port;
+			ba: requires bus access basic_debian::basic_bus.standard;
+	end seat_adjuster;
 	
-	device implementation seat.driver
-	end seat.driver;
+	device implementation seat_adjuster.driver
+	end seat_adjuster.driver;
 	
-	device implementation seat.passenger
-	end seat.passenger;
+	device implementation seat_adjuster.passenger
+	end seat_adjuster.passenger;
 	
 	------------------------------------------------------------------------------------------
 	
-	device airbags
+	device airbag_deployer
 		features
-			deploy: in event port;
-	end airbags;
+			engage: in event port;
+			disengage: in event port;
+			ba: requires bus access basic_debian::basic_bus.standard;
+	end airbag_deployer;
 	
-	device implementation airbags.vehicle
-	end airbags.vehicle;
+	device implementation airbag_deployer.vehicle
+	end airbag_deployer.vehicle;
 	
 	------------------------------------------------------------------------------------------
 	
 	device nudger
 		features
-			adjust_seat_occupant: in event port;
+			engage: in event port;
+			disengage: in event port;
+			ba: requires bus access basic_debian::basic_bus.standard;
 	end nudger;
 	
 	device implementation nudger.driver
@@ -83,13 +96,25 @@ package vehicle_devices
 	
 	------------------------------------------------------------------------------------------
 	
-	device wheels
+	device automatic_wheel_turner
 		features
-			straighten: in event port;
-			turn: in event port;
-	end wheels;
+			engage: in event data port;
+			disengage: in event port;
+			ba: requires bus access basic_debian::basic_bus.standard;
+	end automatic_wheel_turner;
 	
-	device implementation wheels.vehicle
-	end wheels.vehicle;
+	device implementation automatic_wheel_turner.vehicle
+	end automatic_wheel_turner.vehicle;
+	
+	------------------------------------------------------------------------------------------
+	
+	device event_distributor
+		features
+			event_data: out event data port;
+			ba: requires bus access basic_debian::basic_bus.standard;
+	end event_distributor;
+	
+	device implementation event_distributor.standard
+	end event_distributor.standard;
 	
 end vehicle_devices;

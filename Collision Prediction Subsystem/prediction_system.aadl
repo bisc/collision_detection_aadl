@@ -2,6 +2,7 @@ package prediction_system
 	public
 	with basic_debian;
 	with basic_devices;
+	with vehicle;
 	
 	thread read_data
 		features
@@ -13,5 +14,5 @@ package prediction_system
 			Period => 50ms;
 	end read_data;
 	
-	 
+	
 end prediction_system;
