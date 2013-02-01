@@ -3,6 +3,7 @@ package avoidance_system
 	with prediction_system;
 	with vehicle;
 	with basic_devices;
+	with basic_debian;
 	
 	thread event_handler
 		features
@@ -57,7 +58,6 @@ package avoidance_system
 			collidable_objects_data: thread data_handler.singleton;
 			avoid_collision_control: thread control_laws_avoidable.singleton;
 			safe_impact_control: thread control_laws_unavoidable.singleton;
-
 		connections
 			EC1: port predictor_input -> collision_event_handler.read_avoidable;
 			EC2: port predictor_input -> collision_event_handler.read_unavoidable;

@@ -1,4 +1,124 @@
 package networking_system
 	public
+	with basic_debian;
+	with basic_devices;
+	
+	thread receive_shortwave_broadcast
+		features
+			received_data: in data port;
+			message: out data port;
+		properties
+			Dispatch_Protocol => Periodic;
+			Compute_Execution_Time => 1ms .. 10ms;
+			Period => 50ms;
+	end receive_shortwave_broadcast;
+	
+	thread implementation receive_shortwave_broadcast.standard
+	end receive_shortwave_broadcast.standard;
+	
+	thread send_shortwave_broadcast
+		features
+			message: out data port;
+			message_data: in data port;
+		properties
+			Dispatch_Protocol => Periodic;
+			Compute_Execution_Time => 1ms .. 10ms;		
+	end send_shortwave_broadcast;
+	
+	thread implementation send_shortwave_broadcast.standard
+	end send_shortwave_broadcast.standard;
+	
+	thread receive_cellular_broadcast
+		features
+			received_data: in data port;
+			message: out data port;
+		properties
+			Dispatch_Protocol => Periodic;
+			Compute_Execution_Time => 1ms .. 10ms;
+			Period => 50ms;
+	end receive_cellular_broadcast;
+	
+	thread implementation receive_cellular_broadcast.standard
+	end receive_cellular_broadcast.standard;
+	
+	thread send_cellular_broadcast
+		features
+			message: out data port;
+			message_data: in data port;
+		properties
+			Dispatch_Protocol => Periodic;
+			Compute_Execution_Time => 1ms .. 10ms;	
+	end send_cellular_broadcast;
+	
+	thread implementation send_cellular_broadcast.standard
+	end send_cellular_broadcast.standard;
+	
+	------------------------------------------------------------------------------------------
+	
+	process control
+		features
+			received_message: out data port;
+			message_to_send: in data port;
+	end control;
+	
+	process implementation control.sender
+		subcomponents
+			shortwave_sender: thread send_shortwave_broadcast.standard;
+			cellular_sender: thread send_cellular_broadcast.standard;
+		connections
+			send_message_shortwave: port message_to_send -> shortwave_sender.message_data;
+			send_message_cellular: port message_to_send -> cellular_sender.message_data;
+	end control.sender;
+	
+	process implementation control.receiver
+		subcomponents
+			shortwave_receiver: thread receive_shortwave_broadcast.standard;
+			cellular_receiver: thread receive_cellular_broadcast.standard;
+		connections
+			receive_message_shortwave: port shortwave_receiver.message -> received_message;
+			receive_message_cellular: port cellular_receiver.message -> received_message;
+	end control.receiver;
+	
+	------------------------------------------------------------------------------------------
+	
+	system networking_system
+	end networking_system;
+	
+	system implementation networking_system.standard
+		subcomponents
+			shortwave_receiver: device basic_devices::receiver.shortwave;
+			cellular_receiver: device basic_devices::receiver.cellular;
+			shortwave_sender: device basic_devices::broadcaster.shortwave;
+			cellular_sender: device basic_devices::broadcaster.cellular;
+			
+			receiver: process control.receiver;
+			sender: process control.sender;
+			
+			bus_driver: device basic_devices::bus_driver.standard;
+			event_distributor: device basic_devices::event_distributor.standard;
+			
+			vehicle_processor: processor basic_debian::real_time.one_ghz;
+			vehicle_memory: memory basic_debian::ram.standard;
+			vehicle_bus: bus basic_debian::basic_bus.standard;
+		connections
+			sw_receiver_connection: bus access vehicle_bus <-> shortwave_receiver.ba;
+			cl_receiver_connection: bus access vehicle_bus <-> cellular_receiver.ba;
+			sw_sender_connection: bus access vehicle_bus <-> shortwave_sender.ba;
+			cl_sender_connection: bus access vehicle_bus <-> cellular_sender.ba;
+			distributor: bus access vehicle_bus <-> event_distributor.ba;
+			event_sender: bus access vehicle_bus <-> bus_driver.ba;
+			
+			get_message_to_send: port event_distributor.event_data -> sender.message_to_send;
+			send_message_to_prediction_system: port receiver.received_message -> bus_driver.event_data;
+		properties
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to sender.shortwave_sender;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to sender.cellular_sender;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to receiver.shortwave_receiver;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to receiver.cellular_receiver;
+			
+			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to sender;
+			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to receiver;
+	end networking_system.standard;
+	
 	
 end networking_system;
