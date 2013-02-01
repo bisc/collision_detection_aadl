@@ -107,7 +107,7 @@ package basic_devices
 	
 	device speaker
 		features
-			audio:in event data port;
+			audio:in data port;
 			ba:requires bus access basic_debian::basic_bus.standard;
 	end speaker;
 	
