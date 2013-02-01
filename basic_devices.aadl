@@ -126,5 +126,15 @@ package basic_devices
 	--Event Distributor Implementations
 	device implementation event_distributor.standard
 	end event_distributor.standard;
+	
+	device bus_driver
+		features
+			event_data: in event data port;
+			ba: requires bus access basic_debian::basic_bus.standard;
+	end bus_driver;
+	
+	--Bus Driver Implementations
+	device implementation bus_driver.standard
+	end bus_driver.standard;
 		
 end basic_devices;

@@ -79,7 +79,7 @@ package vehicle
 			vehicle_memory: memory basic_debian::ram.standard;
 			vehicle_bus: bus basic_debian::basic_bus.standard;
 		connections
-			collision_event: bus access vehicle_bus <-> event_distributor.ba;
+			receive_prepare_for_collision_event: bus access vehicle_bus <-> event_distributor.ba;
 			event_distribution1: port event_distributor.event_data -> speed_controller.command_data;
 			event_distribution2: port event_distributor.event_data -> position_controller.command_data;
 			event_distribution3: port event_distributor.event_data -> airbag_controller.command_data;
