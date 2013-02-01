@@ -1,4 +1,75 @@
 package avoidance_system
 	public
+	with prediction_system;
+	with vehicle;
+	with basic_devices;
+	
+	thread event_handler
+		features
+			read_avoidable: in event data port;
+			read_unavoidable: in event data port;
+			send_cmd: out event data port;
+			send_driver_alert: out event data port;
+	end event_handler;
+	
+	thread implementation event_handler.singleton
+	end event_handler.singleton;
+	
+	thread data_handler
+		features
+			read_vehicle_sensors: in data port;
+			send_proc_data: out data port;
+	end data_handler;
+	
+	thread implementation data_handler.singleton
+	end data_handler.singleton;
+	
+	thread control_laws
+		features
+			predictor_cmd: in event port;
+			read_proc_data: in data port;
+			send_steering_cmds: out data port;
+			send_brake_cmds:  out event data port;
+	end control_laws;
+	
+	thread control_laws_avoidable extends control_laws
+	end control_laws_avoidable;
+	
+	thread implementation control_laws_avoidable.singleton
+	end control_laws_avoidable.singleton;
+	
+	thread control_laws_unavoidable extends control_laws
+	end control_laws_unavoidable;
+	
+	thread implementation control_laws_unavoidable.singleton
+	end control_laws_unavoidable.singleton;
+	
+	process collision_threat_handler
+		features
+			predictor_input: in event data port;
+			sensor_data: in data port;
+			vehicle_control_data: out data port;
+	end collision_threat_handler;
+	
+	process implementation collision_threat_handler.singleton
+		subcomponents
+			collision_event_handler: thread event_handler.singleton;
+			collidable_objects_data: thread data_handler.singleton;
+			avoid_collision_control: thread control_laws_avoidable.singleton;
+			safe_impact_control: thread control_laws_unavoidable.singleton;
+
+		connections
+			EC1: port predictor_input -> collision_event_handler.read_avoidable;
+			EC2: port predictor_input -> collision_event_handler.read_unavoidable;
+			EC3: port collision_event_handler.send_cmd -> avoid_collision_control.predictor_cmd;
+			EC4: port collision_event_handler.send_cmd -> safe_impact_control.predictor_cmd;
+			DC1: port sensor_data -> collidable_objects_data.read_vehicle_sensors;
+			DC2: port collidable_objects_data.send_proc_data -> avoid_collision_control.read_proc_data;
+			DC3: port collidable_objects_data.send_proc_data -> safe_impact_control.read_proc_data;
+			DC4: port avoid_collision_control.send_brake_cmds -> vehicle_control_data;
+			DC5: port safe_impact_control.send_brake_cmds -> vehicle_control_data;
+			DC6: port avoid_collision_control.send_steering_cmds -> vehicle_control_data;
+			DC7: port safe_impact_control.send_steering_cmds -> vehicle_control_data;
+	end collision_threat_handler.singleton;
 	
 end avoidance_system;

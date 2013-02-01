@@ -119,7 +119,7 @@ package prediction_system
 			motion_controller_unavoidable: port motion_controller.unavoidable_collision_detected -> bus_driver.event_data;
 			speed_controller_avoidable: port speed_controller.avoidable_collision_detected -> bus_driver.event_data;
 			speed_controller_unavoidable: port speed_controller.unavoidable_collision_detected -> bus_driver.event_data;
-			debris_controller_avoidable: port debris_controller.avoidable_collision_detected -> bus_driver.event_data;
+				debris_controller_avoidable: port debris_controller.avoidable_collision_detected -> bus_driver.event_data;
 			debris_controller_unavoidable: port debris_controller.unavoidable_collision_detected -> bus_driver.event_data;
 			vehicle_controller_avoidable: port vehicle_controller.avoidable_collision_detected -> bus_driver.event_data;
 			vehicle_controller_unavoidable: port vehicle_controller.unavoidable_collision_detected -> bus_driver.event_data;
