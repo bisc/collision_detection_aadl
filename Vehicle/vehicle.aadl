@@ -1,6 +1,7 @@
 package vehicle
 	public
 	with vehicle_devices;
+	with basic_devices;
 	with basic_debian;
 	
 	thread check_for_command
@@ -69,7 +70,7 @@ package vehicle
 			driver_nudger: device vehicle_devices::nudger.driver;
 			passenger_nudger: device vehicle_devices::nudger.passenger;
 			wheel_turner: device vehicle_devices::automatic_wheel_turner.vehicle;
-			event_distributor: device vehicle_devices::event_distributor.standard;
+			event_distributor: device basic_devices::event_distributor.standard;
 			speed_controller: process control.standard;
 			position_controller: process control.standard;
 			airbag_controller: process control.standard;
