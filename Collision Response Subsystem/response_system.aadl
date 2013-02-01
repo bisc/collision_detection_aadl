@@ -1,4 +1,80 @@
 package response_system
 	public
+		with basic_debian;
+		with basic_devices;
+		with vehicle;
+		with prediction_system;
+	
+	--send_resp_cmd = send command relating to necessary response action
+	--send_driver_resp_alert = send driver alerts appropriate to response action	
+	thread event_handler
+		features 
+			read_avoidable: in event data port;
+			read_unavoidable: in event data port;
+			send_resp_cmd: out event data port;
+			send_driver_resp_alert: out event data port;
+	end event_handler;
+	
+	thread implementation event_handler.singleton
+	end event_handler.singleton;
+	
+	thread data_handler
+		features
+			read_vehicle_sensors: in data port;
+			send_proc_data: out data port;
+	end data_handler;
+	
+	thread implementation data_handler.singleton
+	end data_handler.singleton;
+	
+	thread control_laws
+		features
+			prediction_cmd: in event port;
+			read_proc_data: in data port;
+			send_seatbelt_cmd: out data port;
+			send_nudger_cmd: out data port;
+			send_headrest_cmd: out data port;
+			send_seat_adjuster_cmd: out data port;
+			send_airbag_deployer_cmd: out data port;
+			send_emergresp_cmd: out event port;
+	end control_laws;
+	
+	thread control_laws_unavoidable extends control_laws
+	end control_laws_unavoidable;
+	
+	thread implementation control_laws_unavoidable.singleton
+	end control_laws_unavoidable.singleton;
+	
+	process collision_response_handler
+		features
+			predictor_input: in event data port;
+			sensor_data: in data port;
+			vehicle_control_data: out data port;
+			network_control_event: out event port;
+	end collision_response_handler;
+	
+	process implementation collision_response_handler.singleton
+		subcomponents
+			collision_event_handler: thread event_handler.singleton;
+			crash_data: thread data_handler.singleton;
+			response_impact_control: thread control_laws_unavoidable.singleton;
+			
+		connections
+			EC1: port predictor_input -> collision_event_handler.read_unavoidable;
+			EC2: port collision_event_handler.send_resp_cmd -> response_impact_control.prediction_cmd;
+			EC3: port collision_event_handler.send_driver_resp_alert -> response_impact_control.prediction_cmd;
+			DC1: port sensor_data -> crash_data.read_vehicle_sensors;
+			DC2: port crash_data.send_proc_data -> response_impact_control.read_proc_data;
+			DC3: port response_impact_control.send_seatbelt_cmd -> vehicle_control_data;
+			DC4: port response_impact_control.send_nudger_cmd -> vehicle_control_data;
+			DC5: port response_impact_control.send_headrest_cmd -> vehicle_control_data;
+			DC6: port response_impact_control.send_seat_adjuster_cmd -> vehicle_control_data;
+			DC7: port response_impact_control.send_airbag_deployer_cmd -> vehicle_control_data;
+			DC8: port response_impact_control.send_emergresp_cmd -> network_control_event;
+		end collision_response_handler.singleton;
+	
+	
+	
+	
 	
 end response_system;
