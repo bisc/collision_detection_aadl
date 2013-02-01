@@ -72,4 +72,12 @@ package avoidance_system
 			DC7: port safe_impact_control.send_steering_cmds -> vehicle_control_data;
 	end collision_threat_handler.singleton;
 	
+	system avoidance_system
+	end avoidance_system;
+	
+	system implementation avoidance_system.impl
+		subcomponents
+			avoidance_unit: process collision_threat_handler.singleton;
+	end avoidance_system.impl;
+	
 end avoidance_system;
