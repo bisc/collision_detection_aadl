@@ -48,6 +48,7 @@ package avoidance_system
 	process collision_threat_handler
 		features
 			predictor_input: in event data port;
+			vehicle_event_output: out event data port;
 			sensor_data: in data port;
 			vehicle_control_data: out data port;
 	end collision_threat_handler;
@@ -63,6 +64,7 @@ package avoidance_system
 			EC2: port predictor_input -> collision_event_handler.read_unavoidable;
 			EC3: port collision_event_handler.send_cmd -> avoid_collision_control.predictor_cmd;
 			EC4: port collision_event_handler.send_cmd -> safe_impact_control.predictor_cmd;
+			EC5: port collision_event_handler.send_driver_alert -> vehicle_event_output;
 			DC1: port sensor_data -> collidable_objects_data.read_vehicle_sensors;
 			DC2: port collidable_objects_data.send_proc_data -> avoid_collision_control.read_proc_data;
 			DC3: port collidable_objects_data.send_proc_data -> safe_impact_control.read_proc_data;
@@ -78,6 +80,21 @@ package avoidance_system
 	system implementation avoidance_system.impl
 		subcomponents
 			avoidance_unit: process collision_threat_handler.singleton;
+			vehicle_processor: processor basic_debian::real_time.one_ghz;
+			vehicle_memory: memory basic_debian::ram.standard;
+			vehicle_bus: bus basic_debian::basic_bus.standard;
+			bus_driver: device basic_devices::bus_driver.standard;
+			event_distributor: device basic_devices::event_distributor.standard;
+		connections
+			get_predictor_msg: port event_distributor.event_data -> avoidance_unit.predictor_input;
+			get_vehicle_feedback: port event_distributor.event_data -> avoidance_unit.sensor_data;
+			send_alert_to_operator: port avoidance_unit.vehicle_event_output -> bus_driver.event_data;
+			vehicle_control: port avoidance_unit.vehicle_control_data-> bus_driver.event_data;
+			event_driver: bus access bus_driver.ba <-> vehicle_bus;
+				
+		properties
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to avoidance_unit;
+			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to avoidance_unit;
 	end avoidance_system.impl;
 	
 end avoidance_system;

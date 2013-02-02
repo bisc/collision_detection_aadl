@@ -1,0 +1,20 @@
+package complete_collision_system
+public
+	with avoidance_system;
+	with prediction_system;
+	with networking_system;
+	with user_interaction_system;
+
+system complete_collision
+end complete_collision;
+
+system implementation complete_collision.impl
+	subcomponents
+		avoider: system avoidance_system::avoidance_system.impl;
+		predictor: system prediction_system::prediction_system.standard;
+		networker: system networking_system::networking_system.standard;
+		hid: system user_interaction_system::user_interaction_system.standard;
+
+end complete_collision.impl;
+
+end complete_collision_system;
