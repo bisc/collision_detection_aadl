@@ -4,10 +4,12 @@ package prediction_system
 	with basic_devices;
 	with vehicle;
 	
+	-- Periodically read data coming from the sensor and pass the raw data back
+	-- for processing
 	thread read_data
 		features
 			sensor_data: in data port;
-			processed_data: out data port;
+			raw_data: out data port;
 		properties
 			Dispatch_Protocol => Periodic;
 			Compute_Execution_Time => 1ms .. 10ms;
@@ -17,38 +19,78 @@ package prediction_system
 	thread implementation read_data.standard
 	end read_data.standard;
 	
+	
+	-- Process the raw data from the sensor and determine if there is the probability
+	-- of an accident.  
 	thread process_data
 		features
 			processed_data: in data port;
-			avoidable_collision_detected: out event data port;
-			unavoidable_collision_detected: out event data port;
+			collision_unprobable: out data port;
+			collision_probable: out data port;
 		properties
-			Dispatch_Protocol => Periodic;
+			Dispatch_Protocol => Sporadic;
 			Compute_Execution_Time => 1ms .. 10ms;
-			Period => 50ms;
 	end process_data;
 	
 	thread implementation process_data.standard
 	end process_data.standard;
 	
+	-- If a collision has been detected, is it a true collision.  If so, is it avoidable.
+	thread determine_course
+		features
+			collision_data: in data port;
+			false_positive: out event data port;
+			avoidable_collision_detected: out event data port;
+			unavoidable_collision_detected: out event data port;
+		properties
+			Dispatch_Protocol => Sporadic;
+			Compute_Execution_Time => 1ms .. 10ms;
+	end determine_course;
+	
+	thread implementation determine_course.standard
+	end determine_course.standard;
+	
 	------------------------------------------------------------------------------------------
 	
 	process control
 		features
-			sensor_data: in data port;
+			sensor_output: in data port;
 			avoidable_collision_detected: out event data port;
 			unavoidable_collision_detected: out event data port;
 	end control;
 	
 	process implementation control.standard
 		subcomponents
-			gather_data: thread read_data.standard;
-			process_data: thread process_data.standard;
+			data_collector: thread read_data.standard;
+			data_processor: thread process_data.standard;
+			collision_helper: thread determine_course.standard;
 		connections
-			raw_data: port sensor_data -> gather_data.sensor_data;
-			processed_data: port gather_data.processed_data -> process_data.processed_data;
-			outcome1: port process_data.avoidable_collision_detected -> avoidable_collision_detected;
-			outcome2: port process_data.unavoidable_collision_detected -> unavoidable_collision_detected;
+			poll_raw_output: port sensor_output -> data_collector.sensor_data;
+			process_data: port data_collector.raw_data -> data_processor.processed_data;
+			collision_detected: port data_processor.collision_probable -> collision_helper.collision_data;
+			outcome1: port collision_helper.avoidable_collision_detected -> avoidable_collision_detected;
+			outcome2: port collision_helper.unavoidable_collision_detected -> unavoidable_collision_detected;
+		modes	
+			-- collision prediction system state machine
+			wait_for_sensor: initial mode;
+			sensor_data_received: mode;
+			sensor_data_processed: mode;
+			check_collision_data: mode;
+			collision_probable: mode;
+			true_positive_detected: mode;
+			false_positive_detected: mode;
+			avoidable_collision: mode;
+			unavoidable_collision: mode;
+			
+			wait_for_sensor-[sensor_output]->sensor_data_received;
+			sensor_data_received-[data_processor.collision_unprobable]->wait_for_sensor;
+			sensor_data_received-[data_processor.collision_probable]->check_collision_data;
+			check_collision_data-[collision_helper.false_positive]->false_positive_detected;
+			false_positive_detected-[collision_helper.false_positive]->wait_for_sensor;
+			check_collision_data-[collision_helper.avoidable_collision_detected]->true_positive_detected;
+			check_collision_data-[collision_helper.unavoidable_collision_detected]->true_positive_detected;
+			true_positive_detected-[collision_helper.avoidable_collision_detected]->avoidable_collision;
+			true_positive_detected-[collision_helper.unavoidable_collision_detected]->unavoidable_collision;
 	end control.standard;
 	
 	------------------------------------------------------------------------------------------
@@ -101,19 +143,19 @@ package prediction_system
 			driver_responsivity_sensor_connection: bus access vehicle_bus <-> driver_responsivity_sensor.ba;
 			driver_impairment_sensor_connection: bus access vehicle_bus <-> driver_impairment_sensor.ba;
 			
-			motion_controller_in: port motion_sensor.sensor_data -> motion_controller.sensor_data;
-			speed_controller_in: port speed_sensor.sensor_data -> speed_controller.sensor_data;
-			debris_controller_in1: port frontal_debris_sensor.sensor_data -> debris_controller.sensor_data;
-			debris_controller_in2: port rear_debris_sensor.sensor_data -> debris_controller.sensor_data;
-			vehicle_controller_in1: port frontal_vehicle_sensor.sensor_data -> vehicle_controller.sensor_data;
-			vehicle_controller_in2: port rear_vehicle_sensor.sensor_data -> vehicle_controller.sensor_data; 
-			vehicle_controller_in3: port side_vehicle_sensor.sensor_data -> vehicle_controller.sensor_data;
-			tire_controller_in1: port tire_pressure_sensor.sensor_data -> tire_controller.sensor_data;
-			tire_controller_in2: port tire_tread_sensor.sensor_data -> tire_controller.sensor_data;
-			tire_controller_in3: port wheel_slippage_sensor.sensor_data -> tire_controller.sensor_data;
-			conditions_controller_in: port road_conditions_sensor.sensor_data -> conditions_controller.sensor_data;
-			driver_controller_in1: port driver_responsivity_sensor.sensor_data -> driver_controller.sensor_data;
-			driver_controller_in2: port driver_impairment_sensor.sensor_data -> driver_controller.sensor_data;
+			motion_controller_in: port motion_sensor.sensor_data -> motion_controller.sensor_output;
+			speed_controller_in: port speed_sensor.sensor_data -> speed_controller.sensor_output;
+			debris_controller_in1: port frontal_debris_sensor.sensor_data -> debris_controller.sensor_output;
+			debris_controller_in2: port rear_debris_sensor.sensor_data -> debris_controller.sensor_output;
+			vehicle_controller_in1: port frontal_vehicle_sensor.sensor_data -> vehicle_controller.sensor_output;
+			vehicle_controller_in2: port rear_vehicle_sensor.sensor_data -> vehicle_controller.sensor_output; 
+			vehicle_controller_in3: port side_vehicle_sensor.sensor_data -> vehicle_controller.sensor_output;
+			tire_controller_in1: port tire_pressure_sensor.sensor_data -> tire_controller.sensor_output;
+			tire_controller_in2: port tire_tread_sensor.sensor_data -> tire_controller.sensor_output;
+			tire_controller_in3: port wheel_slippage_sensor.sensor_data -> tire_controller.sensor_output;
+			conditions_controller_in: port road_conditions_sensor.sensor_data -> conditions_controller.sensor_output;
+			driver_controller_in1: port driver_responsivity_sensor.sensor_data -> driver_controller.sensor_output;
+			driver_controller_in2: port driver_impairment_sensor.sensor_data -> driver_controller.sensor_output;
 			
 			motion_controller_avoidable: port motion_controller.avoidable_collision_detected -> bus_driver.event_data;
 			motion_controller_unavoidable: port motion_controller.unavoidable_collision_detected -> bus_driver.event_data;
@@ -132,20 +174,20 @@ package prediction_system
 			
 			event_driver: bus access bus_driver.ba <-> vehicle_bus;
 		properties
-			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to motion_controller.gather_data;
-			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to motion_controller.process_data;
-			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to speed_controller.gather_data;
-			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to speed_controller.process_data;
-			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to debris_controller.gather_data;
-			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to debris_controller.process_data;
-			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to vehicle_controller.gather_data;
-			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to vehicle_controller.process_data;
-			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to tire_controller.gather_data;
-			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to tire_controller.process_data;
-			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to conditions_controller.gather_data;
-			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to conditions_controller.process_data;
-			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to driver_controller.gather_data;
-			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to driver_controller.process_data;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to motion_controller.data_collector;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to motion_controller.data_processor;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to speed_controller.data_collector;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to speed_controller.data_processor;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to debris_controller.data_collector;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to debris_controller.data_processor;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to vehicle_controller.data_collector;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to vehicle_controller.data_processor;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to tire_controller.data_collector;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to tire_controller.data_processor;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to conditions_controller.data_collector;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to conditions_controller.data_processor;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to driver_controller.data_collector;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to driver_controller.data_processor;
 			
 			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to speed_controller;
 			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to motion_controller;
