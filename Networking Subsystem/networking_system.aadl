@@ -68,6 +68,13 @@ package networking_system
 		connections
 			send_message_shortwave: port message_to_send -> shortwave_sender.message_data;
 			send_message_cellular: port message_to_send -> cellular_sender.message_data;
+		modes
+			--broadcast receiver state machine
+			wait_for_message_to_send: initial mode;
+			got_message_to_send: mode;
+			message_sent: mode;
+			
+			
 	end control.sender;
 	
 	process implementation control.receiver
@@ -77,11 +84,20 @@ package networking_system
 		connections
 			receive_message_shortwave: port shortwave_receiver.message -> received_message;
 			receive_message_cellular: port cellular_receiver.message -> received_message;
+		modes
+			--broadcast receiver state machine
+			wait_for_message: initial mode;
+			message_received: mode;
+			
+			
 	end control.receiver;
 	
 	------------------------------------------------------------------------------------------
 	
 	system networking_system
+		features
+			received_message: out data port;
+			message_to_send: in data port;
 	end networking_system;
 	
 	system implementation networking_system.standard
@@ -108,8 +124,8 @@ package networking_system
 			distributor: bus access vehicle_bus <-> event_distributor.ba;
 			event_sender: bus access vehicle_bus <-> bus_driver.ba;
 			
-			get_message_to_send: port event_distributor.event_data -> sender.message_to_send;
-			send_message_to_prediction_system: port receiver.received_message -> bus_driver.event_data;
+			pass_along_received: port receiver.received_message -> received_message;
+			send_message: port message_to_send -> sender.message_to_send;
 		properties
 			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to sender.shortwave_sender;
 			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to sender.cellular_sender;

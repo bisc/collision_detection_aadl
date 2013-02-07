@@ -14,8 +14,9 @@ system implementation complete_collision.impl
 		predictor: system prediction_system::prediction_system.standard;
 		networker: system networking_system::networking_system.standard;
 		user_interaction: system user_interaction_system::user_interaction_system.standard;
-		
 	connections
+		external_message: port networker.received_message -> predictor.external_message;
+	
 		motion_unavoidable: port predictor.motion_detector_unavoidable -> ;
 		motion_avoidable: port predictor.motion_detector_avoidable -> ;
 		debris_unavoidable: port predictor.debris_detector_unavoidable -> ;
@@ -30,6 +31,8 @@ system implementation complete_collision.impl
 		conditions_avoidable: port predictor.conditions_detector_avoidable -> ;
 		driver_unavoidable: port predictor.driver_detector_unavoidable -> ;
 		driver_avoidable: port predictor.driver_detector_avoidable -> ;
+		external_unavoidable: port predictor.external_message_unavoidable -> ;
+		external_avoidable: port predictor.external_message_avoidable -> ;
 end complete_collision.impl;
 
 end complete_collision_system;

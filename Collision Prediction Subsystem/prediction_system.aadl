@@ -97,6 +97,9 @@ package prediction_system
 	
 	system prediction_system
 		features
+			external_message: in data port;
+			external_message_unavoidable: out event data port;
+			external_message_avoidable: out event data port;
 			motion_detector_unavoidable: out event data port;
 			motion_detector_avoidable: out event data port;
 			debris_detector_unavoidable: out event data port;
@@ -137,6 +140,7 @@ package prediction_system
 			tire_controller: process control.standard;
 			conditions_controller: process control.standard;
 			driver_controller: process control.standard;
+			external_message_controller: process control.standard;
 			vehicle_processor: processor basic_debian::real_time.one_ghz;
 			vehicle_memory: memory basic_debian::ram.standard;
 			vehicle_bus: bus basic_debian::basic_bus.standard;
@@ -170,6 +174,7 @@ package prediction_system
 			conditions_controller_in: port road_conditions_sensor.sensor_data -> conditions_controller.sensor_output;
 			driver_controller_in1: port driver_responsivity_sensor.sensor_data -> driver_controller.sensor_output;
 			driver_controller_in2: port driver_impairment_sensor.sensor_data -> driver_controller.sensor_output;
+			external_message_controller_in: port external_message -> external_message_controller.sensor_output;
 			
 			motion_controller_avoidable: port motion_controller.avoidable_collision_detected -> motion_detector_avoidable;
 			motion_controller_unavoidable: port motion_controller.unavoidable_collision_detected -> motion_detector_unavoidable;
@@ -185,6 +190,8 @@ package prediction_system
 			conditions_controller_unavoidable: port conditions_controller.unavoidable_collision_detected -> conditions_detector_unavoidable;
 			driver_controller_avoidable: port driver_controller.avoidable_collision_detected -> driver_detector_avoidable;
 			driver_controller_unavoidable: port driver_controller.unavoidable_collision_detected -> driver_detector_unavoidable;
+			external_message_out_avoidable: port external_message_controller.avoidable_collision_detected -> external_message_avoidable;
+			external_message_out_unavoidable: port external_message_controller.unavoidable_collision_detected -> external_message_unavoidable;
 		properties
 			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to motion_controller.data_collector;
 			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to motion_controller.data_processor;
