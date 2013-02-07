@@ -33,6 +33,8 @@ system implementation complete_collision.impl
 		driver_avoidable: port predictor.driver_detector_avoidable -> ;
 		external_unavoidable: port predictor.external_message_unavoidable -> ;
 		external_avoidable: port predictor.external_message_avoidable -> ;
+	modes
+		initial_mode: initial mode;
 end complete_collision.impl;
 
 end complete_collision_system;
