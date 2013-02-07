@@ -13,8 +13,23 @@ system implementation complete_collision.impl
 		avoider: system avoidance_system::avoidance_system.impl;
 		predictor: system prediction_system::prediction_system.standard;
 		networker: system networking_system::networking_system.standard;
-		hid: system user_interaction_system::user_interaction_system.standard;
-
+		user_interaction: system user_interaction_system::user_interaction_system.standard;
+		
+	connections
+		motion_unavoidable: port predictor.motion_detector_unavoidable -> ;
+		motion_avoidable: port predictor.motion_detector_avoidable -> ;
+		debris_unavoidable: port predictor.debris_detector_unavoidable -> ;
+		debris_avoidable: port predictor.debris_detector_avoidable -> ;
+		speed_unavoidable: port predictor.speed_detector_unavoidable -> ;
+		speed_avoidable: port predictor.speed_detector_avoidable -> ;
+		vehicle_unavoidable: port predictor.vehicle_detector_unavoidable -> ;
+		vehicle_avoidable: port predictor.vehicle_detector_avoidable -> ;
+		tire_unavoidable: port predictor.tire_detector_unavoidable -> ;
+		tire_avoidable: port predictor.tire_detector_avoidable -> ;
+		conditions_unavoidable: port predictor.conditions_detector_unavoidable -> ;
+		conditions_avoidable: port predictor.conditions_detector_avoidable -> ;
+		driver_unavoidable: port predictor.driver_detector_unavoidable -> ;
+		driver_avoidable: port predictor.driver_detector_avoidable -> ;
 end complete_collision.impl;
 
 end complete_collision_system;

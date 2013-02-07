@@ -96,6 +96,21 @@ package prediction_system
 	------------------------------------------------------------------------------------------
 	
 	system prediction_system
+		features
+			motion_detector_unavoidable: out event data port;
+			motion_detector_avoidable: out event data port;
+			debris_detector_unavoidable: out event data port;
+			debris_detector_avoidable: out event data port;
+			speed_detector_unavoidable: out event data port;
+			speed_detector_avoidable: out event data port;
+			vehicle_detector_unavoidable: out event data port;
+			vehicle_detector_avoidable: out event data port;
+			tire_detector_unavoidable: out event data port;
+			tire_detector_avoidable: out event data port;
+			conditions_detector_unavoidable: out event data port;
+			conditions_detector_avoidable: out event data port;
+			driver_detector_unavoidable: out event data port;
+			driver_detector_avoidable: out event data port;
 	end prediction_system;
 	
 	system implementation prediction_system.standard
@@ -115,7 +130,6 @@ package prediction_system
 			visibility_sensor: device basic_devices::sensor.visibility;
 			driver_responsivity_sensor: device basic_devices::sensor.driver_responsive;
 			driver_impairment_sensor: device basic_devices::sensor.driver_impaired;
-			bus_driver: device basic_devices::bus_driver.standard;
 			debris_controller: process control.standard;
 			motion_controller: process control.standard;
 			speed_controller: process control.standard;
@@ -157,22 +171,20 @@ package prediction_system
 			driver_controller_in1: port driver_responsivity_sensor.sensor_data -> driver_controller.sensor_output;
 			driver_controller_in2: port driver_impairment_sensor.sensor_data -> driver_controller.sensor_output;
 			
-			motion_controller_avoidable: port motion_controller.avoidable_collision_detected -> bus_driver.event_data;
-			motion_controller_unavoidable: port motion_controller.unavoidable_collision_detected -> bus_driver.event_data;
-			speed_controller_avoidable: port speed_controller.avoidable_collision_detected -> bus_driver.event_data;
-			speed_controller_unavoidable: port speed_controller.unavoidable_collision_detected -> bus_driver.event_data;
-			debris_controller_avoidable: port debris_controller.avoidable_collision_detected -> bus_driver.event_data;
-			debris_controller_unavoidable: port debris_controller.unavoidable_collision_detected -> bus_driver.event_data;
-			vehicle_controller_avoidable: port vehicle_controller.avoidable_collision_detected -> bus_driver.event_data;
-			vehicle_controller_unavoidable: port vehicle_controller.unavoidable_collision_detected -> bus_driver.event_data;
-			tire_controller_avoidable: port tire_controller.avoidable_collision_detected -> bus_driver.event_data;
-			tire_controller_unavoidable: port tire_controller.unavoidable_collision_detected -> bus_driver.event_data;
-			conditions_controller_avoidable: port conditions_controller.avoidable_collision_detected -> bus_driver.event_data;
-			conditions_controller_unavoidable: port conditions_controller.unavoidable_collision_detected -> bus_driver.event_data;
-			driver_controller_avoidable: port driver_controller.avoidable_collision_detected -> bus_driver.event_data;
-			driver_controller_unavoidable: port driver_controller.unavoidable_collision_detected -> bus_driver.event_data;					
-			
-			event_driver: bus access bus_driver.ba <-> vehicle_bus;
+			motion_controller_avoidable: port motion_controller.avoidable_collision_detected -> motion_detector_avoidable;
+			motion_controller_unavoidable: port motion_controller.unavoidable_collision_detected -> motion_detector_unavoidable;
+			speed_controller_avoidable: port speed_controller.avoidable_collision_detected -> speed_detector_avoidable;
+			speed_controller_unavoidable: port speed_controller.unavoidable_collision_detected -> speed_detector_unavoidable;
+			debris_controller_avoidable: port debris_controller.avoidable_collision_detected -> debris_detector_avoidable;
+			debris_controller_unavoidable: port debris_controller.unavoidable_collision_detected -> debris_detector_unavoidable;
+			vehicle_controller_avoidable: port vehicle_controller.avoidable_collision_detected -> vehicle_detector_avoidable;
+			vehicle_controller_unavoidable: port vehicle_controller.unavoidable_collision_detected -> vehicle_detector_unavoidable;
+			tire_controller_avoidable: port tire_controller.avoidable_collision_detected -> tire_detector_avoidable;
+			tire_controller_unavoidable: port tire_controller.unavoidable_collision_detected -> tire_detector_unavoidable;
+			conditions_controller_avoidable: port conditions_controller.avoidable_collision_detected -> conditions_detector_avoidable;
+			conditions_controller_unavoidable: port conditions_controller.unavoidable_collision_detected -> conditions_detector_unavoidable;
+			driver_controller_avoidable: port driver_controller.avoidable_collision_detected -> driver_detector_avoidable;
+			driver_controller_unavoidable: port driver_controller.unavoidable_collision_detected -> driver_detector_unavoidable;
 		properties
 			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to motion_controller.data_collector;
 			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to motion_controller.data_processor;
