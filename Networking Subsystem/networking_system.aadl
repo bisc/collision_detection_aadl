@@ -3,6 +3,7 @@ package networking_system
 	with basic_debian;
 	with basic_devices;
 	
+	-- Periodically polls sensor to determine if a message has arrived from other vehicles
 	thread receive_shortwave_broadcast
 		features
 			received_data: in data port;
@@ -16,6 +17,7 @@ package networking_system
 	thread implementation receive_shortwave_broadcast.standard
 	end receive_shortwave_broadcast.standard;
 	
+	-- Sends a message to other vehicles
 	thread send_shortwave_broadcast
 		features
 			message: out data port;
@@ -28,6 +30,7 @@ package networking_system
 	thread implementation send_shortwave_broadcast.standard
 	end send_shortwave_broadcast.standard;
 	
+	-- Periodically polls sensor to determine if a message has arrived from a cell tower
 	thread receive_cellular_broadcast
 		features
 			received_data: in data port;
@@ -41,6 +44,7 @@ package networking_system
 	thread implementation receive_cellular_broadcast.standard
 	end receive_cellular_broadcast.standard;
 	
+	-- Sends a message to a cell tower
 	thread send_cellular_broadcast
 		features
 			message: out data port;
