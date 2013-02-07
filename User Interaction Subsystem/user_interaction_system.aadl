@@ -73,6 +73,9 @@ package user_interaction_system
 	------------------------------------------------------------------------------------------
 	
 	system user_interaction_system
+		features
+			message_received_from_user: out event data port;
+			message_to_send_to_user: in event data port;
 	end user_interaction_system;
 	
 	system implementation user_interaction_system.standard
@@ -84,9 +87,6 @@ package user_interaction_system
 			speaker_controller: process speaker_controller.standard;
 			microphone_controller: process microphone_controller.standard;
 		
-			bus_driver: device basic_devices::bus_driver.standard;
-			event_distributor: device basic_devices::event_distributor.standard;
-		
 			vehicle_processor: processor basic_debian::real_time.one_ghz;
 			vehicle_memory: memory basic_debian::ram.standard;
 			vehicle_bus: bus basic_debian::basic_bus.standard;
@@ -97,11 +97,8 @@ package user_interaction_system
 			microphone_ready: port microphone.spoken_command -> microphone_controller.sensor_ready;
 			audio_to_play: port speaker_controller.audio -> speaker.audio;
 			
-			message_received: port microphone_controller.text -> bus_driver.event_data;
-			message_to_play: port event_distributor.event_data -> speaker_controller.message;
-		
-			distributor: bus access vehicle_bus <-> event_distributor.ba;
-			event_sender: bus access vehicle_bus <-> bus_driver.ba;
+			message_received: port microphone_controller.text -> message_received_from_user;
+			message_to_play: port message_to_send_to_user -> speaker_controller.message;
 		properties
 			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to speaker_controller.audio_player;
 			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to microphone_controller.microphone_sensor;
