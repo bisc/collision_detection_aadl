@@ -91,6 +91,8 @@ package prediction_system
 			check_collision_data-[collision_helper.unavoidable_collision_detected]->true_positive_detected;
 			true_positive_detected-[collision_helper.avoidable_collision_detected]->avoidable_collision;
 			true_positive_detected-[collision_helper.unavoidable_collision_detected]->unavoidable_collision;
+			avoidable_collision-[avoidable_collision_detected]->wait_for_sensor;
+			unavoidable_collision-[unavoidable_collision_detected]->wait_for_sensor;
 	end control.standard;
 	
 	------------------------------------------------------------------------------------------

@@ -52,6 +52,15 @@ package vehicle
 			disengage_command: port command_processor.disengage -> disengage;
 		modes
 			wait_for_command: initial mode;
+			process_command: mode;
+			engage_system: mode;
+			disengage_system: mode;
+			
+			wait_for_command-[command_data]->process_command;
+			process_command-[command_processor.engage]->engage_system;
+			process_command-[command_processor.disengage]->disengage_system;
+			engage_system-[engage]->wait_for_command;
+			disengage_system-[disengage]->wait_for_command;
 	end control.standard;
 	
 	------------------------------------------------------------------------------------------
