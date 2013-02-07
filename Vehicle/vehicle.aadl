@@ -4,6 +4,7 @@ package vehicle
 	with basic_devices;
 	with basic_debian;
 	
+	--Polls the ports periodically for a command from the response or avoidance systems
 	thread check_for_command
 		features
 			received_command: in event data port;
@@ -17,15 +18,15 @@ package vehicle
 	thread implementation check_for_command.standard
 	end check_for_command.standard;
 	
+	--Process a command that has been received
 	thread process_command
 		features
 			command_data: in data port;
 			engage: out event data port;
 			disengage: out event data port;
 		properties
-			Dispatch_Protocol => Periodic;
+			Dispatch_Protocol => Sporadic;
 			Compute_Execution_Time => 1ms .. 10ms;
-			Period => 50ms;
 	end process_command;
 	
 	thread implementation process_command.standard
@@ -49,11 +50,18 @@ package vehicle
 			received_command: port command_received.processed_command -> command_processor.command_data;
 			engage_command: port command_processor.engage -> engage;
 			disengage_command: port command_processor.disengage -> disengage;
+		modes
+			wait_for_command: initial mode;
 	end control.standard;
 	
 	------------------------------------------------------------------------------------------
 	
 	system vehicle
+		features
+			speed_command: in event data port;
+			position_command: in event data port;
+			airbag_command: in event data port;
+			direction_command: in event data port;
 	end vehicle;
 	
 	system implementation vehicle.standard
@@ -70,7 +78,6 @@ package vehicle
 			driver_nudger: device vehicle_devices::nudger.driver;
 			passenger_nudger: device vehicle_devices::nudger.passenger;
 			wheel_turner: device vehicle_devices::automatic_wheel_turner.vehicle;
-			event_distributor: device basic_devices::event_distributor.standard;
 			speed_controller: process control.standard;
 			position_controller: process control.standard;
 			airbag_controller: process control.standard;
@@ -79,11 +86,10 @@ package vehicle
 			vehicle_memory: memory basic_debian::ram.standard;
 			vehicle_bus: bus basic_debian::basic_bus.standard;
 		connections
-			receive_prepare_for_collision_event: bus access vehicle_bus <-> event_distributor.ba;
-			event_distribution1: port event_distributor.event_data -> speed_controller.command_data;
-			event_distribution2: port event_distributor.event_data -> position_controller.command_data;
-			event_distribution3: port event_distributor.event_data -> airbag_controller.command_data;
-			event_distribution4: port event_distributor.event_data -> direction_controller.command_data;
+			event_distribution1: port speed_command -> speed_controller.command_data;
+			event_distribution2: port position_command -> position_controller.command_data;
+			event_distribution3: port airbag_command -> airbag_controller.command_data;
+			event_distribution4: port direction_command -> direction_controller.command_data;
 			
 			--in speed, engage is acceleration, disengage is deceleration
 			speed_engage1: port speed_controller.engage -> brakes.disengage;

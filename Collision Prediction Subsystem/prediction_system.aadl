@@ -207,6 +207,8 @@ package prediction_system
 			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to conditions_controller.data_processor;
 			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to driver_controller.data_collector;
 			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to driver_controller.data_processor;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to external_message_controller.data_collector;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to external_message_controller.data_processor;
 			
 			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to speed_controller;
 			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to motion_controller;
@@ -215,6 +217,7 @@ package prediction_system
 			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to tire_controller;
 			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to conditions_controller;
 			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to driver_controller;
+			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to external_message_controller;
 	end prediction_system.standard;
 	
 end prediction_system;
