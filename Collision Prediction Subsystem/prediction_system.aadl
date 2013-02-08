@@ -8,10 +8,13 @@ package prediction_system
 	-- for processing
 	thread read_data
 		features
+			-- data from the sensor received from the bus
 			sensor_data: in data port;
+			-- the raw data from the sensor for processing
 			raw_data: out data port;
 		properties
 			Dispatch_Protocol => Periodic;
+			-- this should happen fairly quickly, we are just reading data
 			Compute_Execution_Time => 1ms .. 10ms;
 			Period => 50ms;
 	end read_data;
@@ -25,11 +28,14 @@ package prediction_system
 	thread process_data
 		features
 			processed_data: in data port;
+			-- no type of collision could be predicted
 			collision_unprobable: out data port;
+			-- a collision of some type is possible
 			collision_probable: out data port;
 		properties
 			Dispatch_Protocol => Sporadic;
-			Compute_Execution_Time => 1ms .. 10ms;
+			-- this could involve some image processing so provide a bit of extra time
+			Compute_Execution_Time => 1ms .. 500ms;
 	end process_data;
 	
 	thread implementation process_data.standard
@@ -38,13 +44,18 @@ package prediction_system
 	-- If a collision has been detected, is it a true collision.  If so, is it avoidable.
 	thread determine_course
 		features
+			-- the data describing the possible collision
 			collision_data: in data port;
+			-- the data is a false positive
 			false_positive: out event data port;
+			-- the data contains a collision that can probably be avoided
 			avoidable_collision_detected: out event data port;
+			-- the data contains a collision that can probably not be avoided
 			unavoidable_collision_detected: out event data port;
 		properties
 			Dispatch_Protocol => Sporadic;
-			Compute_Execution_Time => 1ms .. 10ms;
+			-- this should finish fairly quickly
+			Compute_Execution_Time => 1ms .. 50ms;
 	end determine_course;
 	
 	thread implementation determine_course.standard
