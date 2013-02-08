@@ -6,10 +6,13 @@ package networking_system
 	-- Periodically polls sensor to determine if a message has arrived from other vehicles
 	thread receive_shortwave_broadcast
 		features
+			-- the received message that needs to be processed into text
 			received_data: in data port;
+			-- the text of the message received
 			message: out data port;
 		properties
 			Dispatch_Protocol => Periodic;
+			-- we need to poll this sensor fairly often so it should compute rather quickly
 			Compute_Execution_Time => 1ms .. 10ms;
 			Period => 50ms;
 	end receive_shortwave_broadcast;
@@ -20,11 +23,14 @@ package networking_system
 	-- Sends a message to other vehicles
 	thread send_shortwave_broadcast
 		features
+			-- the port for other vehicles to grab the message from
 			message: out data port;
+			-- the message to be sent
 			message_data: in data port;
 		properties
 			Dispatch_Protocol => Sporadic;
-			Compute_Execution_Time => 1ms .. 10ms;		
+			-- this can be a bit slow if necessary
+			Compute_Execution_Time => 1ms .. 5000ms;		
 	end send_shortwave_broadcast;
 	
 	thread implementation send_shortwave_broadcast.standard
@@ -33,7 +39,9 @@ package networking_system
 	-- Periodically polls sensor to determine if a message has arrived from a cell tower
 	thread receive_cellular_broadcast
 		features
+			-- the received message that needs to be processed into text
 			received_data: in data port;
+			-- the text of the message received
 			message: out data port;
 		properties
 			Dispatch_Protocol => Periodic;
@@ -47,11 +55,14 @@ package networking_system
 	-- Sends a message to a cell tower
 	thread send_cellular_broadcast
 		features
+			-- the port for other vehicles to grab the message from
 			message: out data port;
+			-- the message to be sent
 			message_data: in data port;
 		properties
 			Dispatch_Protocol => Sporadic;
-			Compute_Execution_Time => 1ms .. 10ms;	
+			-- this can be a bit slow if necessary
+			Compute_Execution_Time => 1ms .. 5000ms;	
 	end send_cellular_broadcast;
 	
 	thread implementation send_cellular_broadcast.standard

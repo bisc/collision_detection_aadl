@@ -5,11 +5,13 @@ package user_interaction_system
 	
 	thread play_audio
 		features
+			-- the text to be spoken
 			text: in data port;
+			-- the audio to be played on the speaker system
 			audio: out data port;
 		properties
 			Dispatch_Protocol => Sporadic;	
-			Compute_Execution_Time => 1ms .. 10ms;
+			Compute_Execution_Time => 1ms .. 1000ms;
 	end play_audio;
 	
 	thread implementation play_audio.standard
@@ -17,9 +19,11 @@ package user_interaction_system
 	
 	thread listen_for_audio
 		features
+			-- audio is available for processing
 			audio_available: out event data port;
 		properties
 			Dispatch_Protocol => Periodic;
+			-- this needs to be fairly rapid
 			Compute_Execution_Time => 1ms .. 10ms;
 			Period => 50ms;
 	end listen_for_audio;
@@ -29,11 +33,13 @@ package user_interaction_system
 	
 	thread convert_to_text
 		features
+			-- the audio spoken by the driver
 			audio: in data port;
+			-- the textual version of the audio
 			text: out data port;
 		properties
 			Dispatch_Protocol => Sporadic;	
-			Compute_Execution_Time => 1ms .. 10ms;	
+			Compute_Execution_Time => 1ms .. 1000ms;	
 	end convert_to_text;
 	
 	thread implementation convert_to_text.standard
