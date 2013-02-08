@@ -5,20 +5,30 @@ package response_system
 		with vehicle;
 		with prediction_system;
 		
+	--Read event/data from predictor to determine if collision is avoidable/unavoidable
+	--If unavoidable, send emergency message to emergency responders and send alert to driver of imminent crash
 	thread event_handler
 		features 
+			--Received message from predictor that crash unavoidable
 			read_unavoidable: in event data port;
+			--Received message from predictor that crash avoidable
 			read_avoidable: in event data port;
-			send_cellular_broadcast: out event data port;
+			--Alert that crash is unavoidable and send data concerning crash details
+			--(severity, occupants, location, etc.)
+			send_emergency_message: out event data port;
+			broad_test: in data port;
+			--Alert driver of imminent crash
 			send_driver_alert: out event port;
 	end event_handler;
 	
 	thread implementation event_handler.singleton
 	end event_handler.singleton;
 	
+	--Process data concerning crash severity/prepare data for outgoing emergency message
 	thread data_handler
 		features
 			read_vehicle_sensors: in data port;
+			--processed data of crash severity
 			send_proc_data: out data port;
 	end data_handler;
 	
@@ -27,10 +37,13 @@ package response_system
 	
 	thread control_laws
 		features
+			--predictor command, related to unavoidable/avoidable message from prediction system
 			predict_cmd: in event port;
+			--read processed data, related to crash severity from sensors, etc.
+			--to be encapsulated in emergency message
 			read_proc_data: in data port;
 			send_driver_alert: out event data port;
-			send_cell_broadcast: out event data port;
+			send_emergency_message: out event data port;
 	end control_laws;
 	
 	thread control_laws_unavoidable extends control_laws
@@ -39,12 +52,33 @@ package response_system
 	thread implementation control_laws_unavoidable.singleton
 	end control_laws_unavoidable.singleton;
 	
+	--If a emergency broadcast message has been sent to network successfully or not
+	thread eval_broadcast_message
+		features
+			--emergency broadcast sent is successful
+			emergency_broad_success: in event data port;
+			--emergency broadcast sent is failure
+			emergency_broad_fail: in event data port;
+			--emergency broadcast test being conducted
+			emergency_broad_test: out data port;
+		properties
+			Dispatch_Protocol => Sporadic;
+			--should know quickly if emergency broadcast message was failure or not
+			Compute_Execution_Time => 1ms .. 20ms;
+	end eval_broadcast_message;
+	
+	thread implementation eval_broadcast_message.standard
+	end eval_broadcast_message.standard;
+	
 	process collision_response_handler
 		features
 			predictor_input: in event data port;
 			sensor_data: in data port;
 			vehicle_control_data: out data port;
 			network_control_event: out event data port;
+			broad_fail: in event data port;
+			broad_success: in event data port;
+			
 	end collision_response_handler;
 	
 	process implementation collision_response_handler.singleton
@@ -52,23 +86,26 @@ package response_system
 			collision_event_handler: thread event_handler.singleton;
 			crash_data: thread data_handler.singleton;
 			response_control: thread control_laws_unavoidable.singleton;
-			
+			broadcast_tester: thread eval_broadcast_message.standard;
 		connections
 			EC1: port predictor_input -> collision_event_handler.read_unavoidable;
 			EC2: port predictor_input -> collision_event_handler.read_avoidable;
-			EC3: port collision_event_handler.send_cellular_broadcast -> response_control.predict_cmd;
+			EC3: port collision_event_handler.send_emergency_message -> response_control.predict_cmd;
 			EC4: port collision_event_handler.send_driver_alert -> response_control.predict_cmd;
+			test1: port collision_event_handler.broad_test -> broadcast_tester.emergency_broad_test; 
+			outcome1: port broad_fail -> broadcast_tester.emergency_broad_fail;
+			outcome2: port broad_success -> broadcast_tester.emergency_broad_success; 
 			DC1: port sensor_data -> crash_data.read_vehicle_sensors;
 			DC2: port crash_data.send_proc_data -> response_control.read_proc_data;
 			DC3: port response_control.send_driver_alert -> vehicle_control_data;
-			DC4: port response_control.send_cell_broadcast -> network_control_event;
+			DC4: port response_control.send_emergency_message -> network_control_event;
 		end collision_response_handler.singleton;
 		
 	system response_system
 		features
 			external_message_unavoidable: in event data port;
 			external_message_avoidable: in event data port;
-			cellular_emergency_broadcast: out event data port;
+			emergency_message: out event data port;
 			driver_alert_message: out event data port;
 	end response_system;
 	
@@ -76,13 +113,13 @@ package response_system
 		subcomponents
 			external_message_controller: process collision_response_handler.singleton;
 			driver_controller: process collision_response_handler.singleton;
-			broadcast_controller: process collision_response_handler.singleton;
+			emergency_controller: process collision_response_handler.singleton;
 			
 		connections
 			external_message_controller_in: port external_message_unavoidable -> external_message_controller.predictor_input;
 			external_message_controller_in2: port external_message_avoidable -> external_message_controller.predictor_input;
 			driver_controller_unavoidable: port driver_controller.vehicle_control_data -> driver_alert_message;
-			broadcast_controller_emergency: port broadcast_controller.network_control_event -> cellular_emergency_broadcast;
+			emergency_controller_emergency: port emergency_controller.network_control_event -> emergency_message;
 			
 	end response_system.standard;
 		
