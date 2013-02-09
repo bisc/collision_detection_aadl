@@ -1,9 +1,9 @@
 package response_system
 	public
-		with basic_debian;
-		with basic_devices;
-		with vehicle;
-		with prediction_system;
+	with basic_debian;
+	with basic_devices;
+	with vehicle;
+	with prediction_system;
 		
 	--Read event/data from predictor to determine if collision is avoidable/unavoidable
 	--If unavoidable, send emergency message to emergency responders and send alert to driver of imminent crash
@@ -121,6 +121,5 @@ package response_system
 			driver_controller_unavoidable: port driver_controller.vehicle_control_data -> driver_alert_message;
 			emergency_controller_emergency: port emergency_controller.network_control_event -> emergency_message;
 			
-	end response_system.standard;
-		
+	end response_system.standard;	
 end response_system;
