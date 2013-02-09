@@ -45,12 +45,29 @@ package avoidance_system
 	thread implementation control_laws_unavoidable.singleton
 	end control_laws_unavoidable.singleton;
 	
+
 	process collision_threat_handler
 		features
 			predictor_input: in event data port;
 			vehicle_event_output: out event data port;
 			sensor_data: in data port;
 			vehicle_control_data: out data port;
+			motion_unavoidable: in data port;
+			motion_avoidable: in data port;
+			debris_unavoidable: in data port;
+			debris_avoidable: in data port;
+			speed_unavoidable: in data port;
+			speed_avoidable: in data port;
+			vehicle_unavoidable: in data port;
+			vehicle_avoidable: in data port;
+			tire_unavoidable: in data port;
+			tire_avoidable: in data port;
+			conditions_unavoidable: in data port;
+			conditions_avoidable: in data port;
+			driver_unavoidable: in data port;
+			driver_avoidable: in data port;
+			external_unavoidable: in data port;
+			external_avoidable: in data port;
 	end collision_threat_handler;
 	
 	process implementation collision_threat_handler.singleton
@@ -75,6 +92,23 @@ package avoidance_system
 	end collision_threat_handler.singleton;
 	
 	system avoidance_system
+		features
+			motion_unavoidable: in data port;
+			motion_avoidable: in data port;
+			debris_unavoidable: in data port;
+			debris_avoidable: in data port;
+			speed_unavoidable: in data port;
+			speed_avoidable: in data port;
+			vehicle_unavoidable: in data port;
+			vehicle_avoidable: in data port;
+			tire_unavoidable: in data port;
+			tire_avoidable: in data port;
+			conditions_unavoidable: in data port;
+			conditions_avoidable: in data port;
+			driver_unavoidable: in data port;
+			driver_avoidable: in data port;
+			external_unavoidable: in data port;
+			external_avoidable: in data port;
 	end avoidance_system;
 	
 	system implementation avoidance_system.impl
@@ -85,6 +119,7 @@ package avoidance_system
 			vehicle_bus: bus basic_debian::basic_bus.standard;
 			bus_driver: device basic_devices::bus_driver.standard;
 			event_distributor: device basic_devices::event_distributor.standard;
+			
 		connections
 			get_predictor_msg: port event_distributor.event_data -> avoidance_unit.predictor_input;
 			get_vehicle_feedback: port event_distributor.event_data -> avoidance_unit.sensor_data;
