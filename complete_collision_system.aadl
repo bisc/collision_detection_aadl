@@ -17,22 +17,22 @@ system implementation complete_collision.impl
 	connections
 		external_message: port networker.received_message -> predictor.external_message;
 	
-		motion_unavoidable: port predictor.motion_detector_unavoidable -> avoider.motion_unavoidable;
-		motion_avoidable: port predictor.motion_detector_avoidable -> avoider.motion_avoidable;
-		debris_unavoidable: port predictor.debris_detector_unavoidable -> avoider.debris_unavoidable;
-		debris_avoidable: port predictor.debris_detector_avoidable -> avoider.debris_avoidable;
-		speed_unavoidable: port predictor.speed_detector_unavoidable -> avoider.speed_unavoidable;
-		speed_avoidable: port predictor.speed_detector_avoidable -> avoider.speed_avoidable;
-		vehicle_unavoidable: port predictor.vehicle_detector_unavoidable -> avoider.vehicle_unavoidable;
-		vehicle_avoidable: port predictor.vehicle_detector_avoidable -> avoider.vehicle_avoidable;
-		tire_unavoidable: port predictor.tire_detector_unavoidable -> avoider.tire_unavoidable;
-		tire_avoidable: port predictor.tire_detector_avoidable -> avoider.tire_avoidable;
-		conditions_unavoidable: port predictor.conditions_detector_unavoidable -> avoider.conditions_unavoidable;
-		conditions_avoidable: port predictor.conditions_detector_avoidable -> avoider.conditions_avoidable;
-		driver_unavoidable: port predictor.driver_detector_unavoidable -> avoider.driver_unavoidable;
-		driver_avoidable: port predictor.driver_detector_avoidable -> avoider.driver_avoidable;
-		external_unavoidable: port predictor.external_message_unavoidable -> avoider.external_unavoidable;
-		external_avoidable: port predictor.external_message_avoidable -> avoider.external_avoidable;
+		motion_unavoidable: port predictor.motion_detector_unavoidable -> avoider.motion_unavoidable_port;
+		motion_avoidable: port predictor.motion_detector_avoidable -> avoider.motion_avoidable_port;
+		debris_unavoidable: port predictor.debris_detector_unavoidable -> avoider.debris_unavoidable_port;
+		debris_avoidable: port predictor.debris_detector_avoidable -> avoider.debris_avoidable_port;
+		speed_unavoidable: port predictor.speed_detector_unavoidable -> avoider.speed_unavoidable_port;
+		speed_avoidable: port predictor.speed_detector_avoidable -> avoider.speed_avoidable_port;
+		vehicle_unavoidable: port predictor.vehicle_detector_unavoidable -> avoider.vehicle_unavoidable_port;
+		vehicle_avoidable: port predictor.vehicle_detector_avoidable -> avoider.vehicle_avoidable_port;
+		tire_unavoidable: port predictor.tire_detector_unavoidable -> avoider.tire_unavoidable_port;
+		tire_avoidable: port predictor.tire_detector_avoidable -> avoider.tire_avoidable_port;
+		conditions_unavoidable: port predictor.conditions_detector_unavoidable -> avoider.conditions_unavoidable_port;
+		conditions_avoidable: port predictor.conditions_detector_avoidable -> avoider.conditions_avoidable_port;
+		driver_unavoidable: port predictor.driver_detector_unavoidable -> avoider.driver_unavoidable_port;
+		driver_avoidable: port predictor.driver_detector_avoidable -> avoider.driver_avoidable_port;
+		external_unavoidable: port predictor.external_message_unavoidable -> avoider.external_unavoidable_port;
+		external_avoidable: port predictor.external_message_avoidable -> avoider.external_avoidable_port;
 	modes
 		initial_mode: initial mode;
 end complete_collision.impl;

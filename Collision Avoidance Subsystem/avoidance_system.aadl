@@ -52,22 +52,22 @@ package avoidance_system
 			vehicle_event_output: out event data port;
 			sensor_data: in data port;
 			vehicle_control_data: out data port;
-			motion_unavoidable: in data port;
-			motion_avoidable: in data port;
-			debris_unavoidable: in data port;
-			debris_avoidable: in data port;
-			speed_unavoidable: in data port;
-			speed_avoidable: in data port;
-			vehicle_unavoidable: in data port;
-			vehicle_avoidable: in data port;
-			tire_unavoidable: in data port;
-			tire_avoidable: in data port;
-			conditions_unavoidable: in data port;
-			conditions_avoidable: in data port;
-			driver_unavoidable: in data port;
-			driver_avoidable: in data port;
-			external_unavoidable: in data port;
-			external_avoidable: in data port;
+			motion_unavoidable_port: in data port;
+			motion_avoidable_port: in data port;
+			debris_unavoidable_port: in data port;
+			debris_avoidable_port: in data port;
+			speed_unavoidable_port: in data port;
+			speed_avoidable_port: in data port;
+			vehicle_unavoidable_port: in data port;
+			vehicle_avoidable_port: in data port;
+			tire_unavoidable_port: in data port;
+			tire_avoidable_port: in data port;
+			conditions_unavoidable_port: in data port;
+			conditions_avoidable_port: in data port;
+			driver_unavoidable_port: in data port;
+			driver_avoidable_port: in data port;
+			external_unavoidable_port: in data port;
+			external_avoidable_port: in data port;
 	end collision_threat_handler;
 	
 	process implementation collision_threat_handler.singleton
@@ -77,6 +77,7 @@ package avoidance_system
 			avoid_collision_control: thread control_laws_avoidable.singleton;
 			safe_impact_control: thread control_laws_unavoidable.singleton;
 		connections
+			
 			EC1: port predictor_input -> collision_event_handler.read_avoidable;
 			EC2: port predictor_input -> collision_event_handler.read_unavoidable;
 			EC3: port collision_event_handler.send_cmd -> avoid_collision_control.predictor_cmd;
@@ -93,22 +94,22 @@ package avoidance_system
 	
 	system avoidance_system
 		features
-			motion_unavoidable: in data port;
-			motion_avoidable: in data port;
-			debris_unavoidable: in data port;
-			debris_avoidable: in data port;
-			speed_unavoidable: in data port;
-			speed_avoidable: in data port;
-			vehicle_unavoidable: in data port;
-			vehicle_avoidable: in data port;
-			tire_unavoidable: in data port;
-			tire_avoidable: in data port;
-			conditions_unavoidable: in data port;
-			conditions_avoidable: in data port;
-			driver_unavoidable: in data port;
-			driver_avoidable: in data port;
-			external_unavoidable: in data port;
-			external_avoidable: in data port;
+			motion_unavoidable_port: in data port;
+			motion_avoidable_port: in data port;
+			debris_unavoidable_port: in data port;
+			debris_avoidable_port: in data port;
+			speed_unavoidable_port: in data port;
+			speed_avoidable_port: in data port;
+			vehicle_unavoidable_port: in data port;
+			vehicle_avoidable_port: in data port;
+			tire_unavoidable_port: in data port;
+			tire_avoidable_port: in data port;
+			conditions_unavoidable_port: in data port;
+			conditions_avoidable_port: in data port;
+			driver_unavoidable_port: in data port;
+			driver_avoidable_port: in data port;
+			external_unavoidable_port: in data port;
+			external_avoidable_port: in data port;
 	end avoidance_system;
 	
 	system implementation avoidance_system.impl
@@ -121,7 +122,23 @@ package avoidance_system
 			event_distributor: device basic_devices::event_distributor.standard;
 			
 		connections
-			get_predictor_msg: port event_distributor.event_data -> avoidance_unit.predictor_input;
+			motion_unavoidable: port motion_unavoidable_port -> avoidance_unit.motion_unavoidable_port;
+			motion_avoidable: port motion_avoidable_port -> avoidance_unit.motion_avoidable_port;
+			debris_unavoidable: port debris_unavoidable_port -> avoidance_unit.debris_unavoidable_port;
+			debris_avoidable: port debris_avoidable_port -> avoidance_unit.debris_avoidable_port;
+			speed_unavoidable: port speed_unavoidable_port -> avoidance_unit.speed_unavoidable_port;
+			speed_avoidable: port speed_avoidable_port -> avoidance_unit.speed_avoidable_port;
+			vehicle_unavoidable: port vehicle_unavoidable_port -> avoidance_unit.vehicle_unavoidable_port;
+			vehicle_avoidable: port vehicle_avoidable_port -> avoidance_unit.vehicle_avoidable_port;
+			tire_unavoidable: port tire_unavoidable_port -> avoidance_unit.tire_unavoidable_port;
+			tire_avoidable: port tire_avoidable_port -> avoidance_unit.tire_avoidable_port;
+			conditions_unavoidable: port conditions_unavoidable_port -> avoidance_unit.conditions_unavoidable_port;
+			conditions_avoidable: port conditions_avoidable_port -> avoidance_unit.conditions_avoidable_port;
+			driver_unavoidable: port driver_unavoidable_port -> avoidance_unit.driver_unavoidable_port;
+			driver_avoidable: port driver_avoidable_port -> avoidance_unit.driver_avoidable_port;
+			external_unavoidable: port external_unavoidable_port -> avoidance_unit.external_unavoidable_port;
+			external_avoidable: port motion_unavoidable_port -> avoidance_unit.external_avoidable_port;
+
 			get_vehicle_feedback: port event_distributor.event_data -> avoidance_unit.sensor_data;
 			send_alert_to_operator: port avoidance_unit.vehicle_event_output -> bus_driver.event_data;
 			vehicle_control: port avoidance_unit.vehicle_control_data-> bus_driver.event_data;
