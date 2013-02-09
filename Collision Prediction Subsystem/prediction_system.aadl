@@ -68,6 +68,7 @@ package prediction_system
 			sensor_output: in data port;
 			avoidable_collision_detected: out event data port;
 			unavoidable_collision_detected: out event data port;
+			false_positive: out event data port;
 	end control;
 	
 	process implementation control.standard
@@ -81,6 +82,7 @@ package prediction_system
 			collision_detected: port data_processor.collision_probable -> collision_helper.collision_data;
 			outcome1: port collision_helper.avoidable_collision_detected -> avoidable_collision_detected;
 			outcome2: port collision_helper.unavoidable_collision_detected -> unavoidable_collision_detected;
+			false_outcome: port collision_helper.false_positive -> false_positive;
 		modes	
 			-- collision prediction system state machine
 			wait_for_sensor: initial mode;
@@ -127,6 +129,7 @@ package prediction_system
 			conditions_detector_avoidable: out event data port;
 			driver_detector_unavoidable: out event data port;
 			driver_detector_avoidable: out event data port;
+			false_positive: out event data port;
 	end prediction_system;
 	
 	system implementation prediction_system.standard
@@ -191,20 +194,28 @@ package prediction_system
 			
 			motion_controller_avoidable: port motion_controller.avoidable_collision_detected -> motion_detector_avoidable;
 			motion_controller_unavoidable: port motion_controller.unavoidable_collision_detected -> motion_detector_unavoidable;
+			motion_controller_false_positive: port motion_controller.false_positive -> false_positive;
 			speed_controller_avoidable: port speed_controller.avoidable_collision_detected -> speed_detector_avoidable;
 			speed_controller_unavoidable: port speed_controller.unavoidable_collision_detected -> speed_detector_unavoidable;
+			speed_controller_false_positive: port speed_controller.false_positive -> false_positive;
 			debris_controller_avoidable: port debris_controller.avoidable_collision_detected -> debris_detector_avoidable;
 			debris_controller_unavoidable: port debris_controller.unavoidable_collision_detected -> debris_detector_unavoidable;
+			debris_controller_false_positive: port debris_controller.false_positive -> false_positive;
 			vehicle_controller_avoidable: port vehicle_controller.avoidable_collision_detected -> vehicle_detector_avoidable;
 			vehicle_controller_unavoidable: port vehicle_controller.unavoidable_collision_detected -> vehicle_detector_unavoidable;
+			vehicle_controller_false_positive: port vehicle_controller.false_positive -> false_positive;
 			tire_controller_avoidable: port tire_controller.avoidable_collision_detected -> tire_detector_avoidable;
 			tire_controller_unavoidable: port tire_controller.unavoidable_collision_detected -> tire_detector_unavoidable;
+			tire_controller_false_positive: port tire_controller.false_positive -> false_positive;
 			conditions_controller_avoidable: port conditions_controller.avoidable_collision_detected -> conditions_detector_avoidable;
 			conditions_controller_unavoidable: port conditions_controller.unavoidable_collision_detected -> conditions_detector_unavoidable;
+			conditions_controller_false_positive: port conditions_controller.false_positive -> false_positive;
 			driver_controller_avoidable: port driver_controller.avoidable_collision_detected -> driver_detector_avoidable;
 			driver_controller_unavoidable: port driver_controller.unavoidable_collision_detected -> driver_detector_unavoidable;
+			driver_controller_false_positive: port driver_controller.false_positive -> false_positive;
 			external_message_out_avoidable: port external_message_controller.avoidable_collision_detected -> external_message_avoidable;
 			external_message_out_unavoidable: port external_message_controller.unavoidable_collision_detected -> external_message_unavoidable;
+			external_message_controller_false_positive: port external_message_controller.false_positive -> false_positive;
 		properties
 			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to motion_controller.data_collector;
 			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to motion_controller.data_processor;
