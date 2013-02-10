@@ -61,6 +61,11 @@ package avoidance_system
 	thread implementation control_laws_unavoidable.singleton
 	end control_laws_unavoidable.singleton;
 	
+	thread fault_detection
+	end fault_detection;
+	
+	thread implementation fault_detection.impl
+	end fault_detection.impl;
 
 	process collision_threat_handler
 		features
@@ -91,7 +96,7 @@ package avoidance_system
 			vehicle_event_output: out event data port;
 	end collision_threat_handler;
 	
-	process implementation collision_threat_handler.singleton
+	process implementation collision_threat_handler.A
 		subcomponents
 			motion_data_handler: thread data_handler.motion;
 			debris_data_handler: thread data_handler.debris;
@@ -103,6 +108,7 @@ package avoidance_system
 			external_data_handler: thread data_handler.external;
 			avoid_collision_control: thread control_laws_avoidable.singleton;
 			safe_impact_control: thread control_laws_unavoidable.singleton;
+			fault_detection: thread fault_detection.impl;
 		connections
 			motion_unavoidable: port motion_unavoidable_port -> motion_data_handler.read_sensor;
 			motion_avoidable: port motion_avoidable_port -> motion_data_handler.read_sensor;
@@ -138,7 +144,11 @@ package avoidance_system
 			DC5: port safe_impact_control.send_brake_cmds -> vehicle_control_data;
 			DC6: port avoid_collision_control.send_steering_cmds -> vehicle_control_data;
 			DC7: port safe_impact_control.send_steering_cmds -> vehicle_control_data;
-	end collision_threat_handler.singleton;
+	end collision_threat_handler.A;
+	
+	-- Hot standby.
+	process implementation collision_threat_handler.B extends collision_threat_handler.A
+	end collision_threat_handler.B;
 	
 	system avoidance_system
 		features
@@ -162,7 +172,7 @@ package avoidance_system
 	
 	system implementation avoidance_system.impl
 		subcomponents
-			avoidance_process: process collision_threat_handler.singleton;
+			avoidance_process: process collision_threat_handler.A;
 			vehicle_processor: processor basic_debian::real_time.one_ghz;
 			vehicle_memory: memory basic_debian::ram.standard;
 			vehicle_bus: bus basic_debian::basic_bus.standard;
