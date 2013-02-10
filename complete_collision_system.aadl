@@ -5,6 +5,7 @@ public
 	with networking_system;
 	with user_interaction_system;
 	with response_system;
+	with vehicle;
 
 	system complete_collision
 	end complete_collision;
@@ -16,6 +17,7 @@ public
 			networker: system networking_system::networking_system.standard;
 			responder: system response_system::response_system.standard;
 			user_interaction: system user_interaction_system::user_interaction_system.standard;
+			vehicle: system vehicle::vehicle.standard;
 		connections
 			external_message: port networker.received_message -> predictor.external_message;
 		
@@ -55,6 +57,10 @@ public
 	
 	        send_message_to_external: port responder.emergency_message -> networker.message_to_send;
 	        send_message_to_driver: port responder.driver_alert_message -> user_interaction.message_to_send_to_user;
+	        
+	        auto_braking: port avoider.braking_cmd->vehicle.speed_command;
+	        auto_steering: port avoider.steering_cmd->vehicle.direction_command;
+	        
 		modes
 			no_collision_detected: initial mode;
 	        false_positive: mode;
