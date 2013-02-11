@@ -5,7 +5,6 @@ package avoidance_system
 	with basic_devices;
 	with basic_debian;
 	
-	
 	thread data_handler
 		features
 			-- Req: Only sensor data relevant to a potential collision is input.
@@ -70,9 +69,17 @@ package avoidance_system
 			failure_detected: out event port;
 			-- Reports healthy operational status
 			all_green: out event port;
+		flows
+			f1: flow path thread_monitor -> all_green
+			{Communication_Properties::Latency => 1 ms .. 5ms;};
+			f2: flow path thread_monitor -> failure_detected
+			{Communication_Properties::Latency => 1 ms .. 5ms;};
 	end watchdog_thread;
 	
 	thread implementation watchdog_thread.impl
+		flows
+			f1: flow path thread_monitor -> all_green;
+			f2: flow path thread_monitor -> failure_detected;
 		modes
 			init: initial mode;
 			healthy: mode;
@@ -82,6 +89,9 @@ package avoidance_system
 			fault_detected-[failure_detected]->fault_detected;
 			init-[thread_monitor]->healthy;
 			healthy-[all_green]->init;
+
+		properties
+			Thread_Properties::Dispatch_Protocol => Sporadic;
 	end watchdog_thread.impl;
 
 	process watchdog_proc
@@ -104,7 +114,6 @@ package avoidance_system
 	
 	process collision_threat_handler
 		features
-			predictor_input: in event data port;
 			
 			-- Req: Only sensor data relevant to a potential collision is input.
 			sensor_data: in data port;
@@ -125,6 +134,9 @@ package avoidance_system
 			driver_avoidable_port: in data port;
 			external_unavoidable_port: in data port;
 			external_avoidable_port: in data port;
+			
+			self_test_result: out event port;
+			proc_watchdog_cmd_input: in event port;
 			--------------------------------------------------------------------
 			
 			-- Provides: Directs course to minimize damage
@@ -222,6 +234,12 @@ package avoidance_system
 			event_distributor: device basic_devices::event_distributor.standard;
 			
 		connections
+			-- self test loop
+			proc_mon1: port avoidance_process_A.self_test_result -> watchdog_process.proc_monitor;
+			proc_mon2: port avoidance_process_B.self_test_result -> watchdog_process.proc_monitor;
+			proc_cntl1: port watchdog_process.hot_swap -> avoidance_process_A.proc_watchdog_cmd_input;
+			proc_cntl2: port watchdog_process.hot_swap -> avoidance_process_B.proc_watchdog_cmd_input;
+			-- filtered sensor data
 			motion_unavoidable1: port motion_unavoidable_port -> avoidance_process_A.motion_unavoidable_port;
 			motion_avoidable1: port motion_avoidable_port -> avoidance_process_A.motion_avoidable_port;
 			debris_unavoidable1: port debris_unavoidable_port -> avoidance_process_A.debris_unavoidable_port;
@@ -265,6 +283,7 @@ package avoidance_system
 			steering_control2: port avoidance_process_B.vehicle_control_data-> steering_cmd;
 			
 			event_driver: bus access bus_driver.ba <-> vehicle_bus;
+
 				
 		properties
 			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to avoidance_process_A;
