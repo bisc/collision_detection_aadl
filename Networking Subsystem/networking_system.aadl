@@ -81,8 +81,8 @@ package networking_system
 			shortwave_sender: thread send_shortwave_broadcast.standard;
 			cellular_sender: thread send_cellular_broadcast.standard;
 		connections
-			send_message_shortwave: port message_to_send -> shortwave_sender.message_data;
-			send_message_cellular: port message_to_send -> cellular_sender.message_data;
+			send_message_shortwave: port message_to_send -> shortwave_sender.message_data				{ Communication_Properties::Latency => 8ms .. 12ms; };
+			send_message_cellular: port message_to_send -> cellular_sender.message_data					{ Communication_Properties::Latency => 8ms .. 12ms; };
 		modes
 			--broadcast receiver state machine
 			wait_for_message_to_send: initial mode;
@@ -101,8 +101,8 @@ package networking_system
 			shortwave_receiver: thread receive_shortwave_broadcast.standard;
 			cellular_receiver: thread receive_cellular_broadcast.standard;
 		connections
-			receive_message_shortwave: port shortwave_receiver.message -> received_message;
-			receive_message_cellular: port cellular_receiver.message -> received_message;
+			receive_message_shortwave: port shortwave_receiver.message -> received_message				{ Communication_Properties::Latency => 8ms .. 12ms; };
+			receive_message_cellular: port cellular_receiver.message -> received_message				{ Communication_Properties::Latency => 8ms .. 12ms; };
 		modes
 			--broadcast receiver state machine
 			wait_for_message: initial mode;
@@ -139,15 +139,15 @@ package networking_system
 			vehicle_memory: memory basic_debian::ram.standard;
 			vehicle_bus: bus basic_debian::basic_bus.standard;
 		connections
-			sw_receiver_connection: bus access vehicle_bus <-> shortwave_receiver.ba;
-			cl_receiver_connection: bus access vehicle_bus <-> cellular_receiver.ba;
-			sw_sender_connection: bus access vehicle_bus <-> shortwave_sender.ba;
-			cl_sender_connection: bus access vehicle_bus <-> cellular_sender.ba;
-			distributor: bus access vehicle_bus <-> event_distributor.ba;
-			event_sender: bus access vehicle_bus <-> bus_driver.ba;
+			sw_receiver_connection: bus access vehicle_bus <-> shortwave_receiver.ba			{ Communication_Properties::Latency => 8ms .. 12ms; };
+			cl_receiver_connection: bus access vehicle_bus <-> cellular_receiver.ba				{ Communication_Properties::Latency => 8ms .. 12ms; };
+			sw_sender_connection: bus access vehicle_bus <-> shortwave_sender.ba				{ Communication_Properties::Latency => 8ms .. 12ms; };
+			cl_sender_connection: bus access vehicle_bus <-> cellular_sender.ba					{ Communication_Properties::Latency => 8ms .. 12ms; };
+			distributor: bus access vehicle_bus <-> event_distributor.ba						{ Communication_Properties::Latency => 8ms .. 12ms; };
+			event_sender: bus access vehicle_bus <-> bus_driver.ba								{ Communication_Properties::Latency => 8ms .. 12ms; };
 			
-			pass_along_received: port receiver.received_message -> received_message;
-			send_message: port message_to_send -> sender.message_to_send;
+			pass_along_received: port receiver.received_message -> received_message				{ Communication_Properties::Latency => 8ms .. 12ms; };
+			send_message: port message_to_send -> sender.message_to_send						{ Communication_Properties::Latency => 8ms .. 12ms; };
 		properties
 			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to sender.shortwave_sender;
 			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to sender.cellular_sender;
