@@ -57,8 +57,8 @@ package user_interaction_system
 		subcomponents
 			audio_player: thread play_audio.standard;
 		connections
-			text_to_convert: port message -> audio_player.text;
-			audio_to_play: port audio_player.audio -> audio;
+			text_to_convert: port message -> audio_player.text											{ Communication_Properties::Latency => 8ms .. 12ms; };
+			audio_to_play: port audio_player.audio -> audio												{ Communication_Properties::Latency => 8ms .. 12ms; };
 	end speaker_controller.standard;
 	
 	process microphone_controller
@@ -72,8 +72,8 @@ package user_interaction_system
 			microphone_sensor: thread listen_for_audio.standard;
 			microphone: thread convert_to_text.standard;
 		connections
-			audio_available: port microphone_sensor.audio_available -> microphone.audio;
-			converted_audio: port microphone.text -> text;
+			audio_available: port microphone_sensor.audio_available -> microphone.audio					{ Communication_Properties::Latency => 8ms .. 12ms; };
+			converted_audio: port microphone.text -> text												{ Communication_Properties::Latency => 8ms .. 12ms; };
 	end microphone_controller.standard;
 	
 	------------------------------------------------------------------------------------------
@@ -97,14 +97,14 @@ package user_interaction_system
 			vehicle_memory: memory basic_debian::ram.standard;
 			vehicle_bus: bus basic_debian::basic_bus.standard;
 		connections 
-			microphone_connection: bus access vehicle_bus <-> microphone.ba;
-			speaker_connection: bus access vehicle_bus <-> speaker.ba;
+			microphone_connection: bus access vehicle_bus <-> microphone.ba								{ Communication_Properties::Latency => 8ms .. 12ms; };
+			speaker_connection: bus access vehicle_bus <-> speaker.ba									{ Communication_Properties::Latency => 8ms .. 12ms; };
 			
-			microphone_ready: port microphone.spoken_command -> microphone_controller.sensor_ready;
-			audio_to_play: port speaker_controller.audio -> speaker.audio;
+			microphone_ready: port microphone.spoken_command -> microphone_controller.sensor_ready		{ Communication_Properties::Latency => 8ms .. 12ms; };
+			audio_to_play: port speaker_controller.audio -> speaker.audio								{ Communication_Properties::Latency => 8ms .. 12ms; };
 			
-			message_received: port microphone_controller.text -> message_received_from_user;
-			message_to_play: port message_to_send_to_user -> speaker_controller.message;
+			message_received: port microphone_controller.text -> message_received_from_user				{ Communication_Properties::Latency => 8ms .. 12ms; };
+			message_to_play: port message_to_send_to_user -> speaker_controller.message					{ Communication_Properties::Latency => 8ms .. 12ms; };
 		properties
 			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to speaker_controller.audio_player;
 			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to microphone_controller.microphone_sensor;
