@@ -88,17 +88,17 @@ package response_system
 			response_control: thread control_laws_unavoidable.singleton;
 			broadcast_tester: thread eval_broadcast_message.standard;
 		connections
-			EC1: port predictor_input -> collision_event_handler.read_unavoidable;
-			EC2: port predictor_input -> collision_event_handler.read_avoidable;
-			EC3: port collision_event_handler.send_emergency_message -> response_control.predict_cmd;
-			EC4: port collision_event_handler.send_driver_alert -> response_control.predict_cmd;
-			test1: port collision_event_handler.broad_test -> broadcast_tester.emergency_broad_test; 
-			outcome1: port broad_fail -> broadcast_tester.emergency_broad_fail;
-			outcome2: port broad_success -> broadcast_tester.emergency_broad_success; 
-			DC1: port sensor_data -> crash_data.read_vehicle_sensors;
-			DC2: port crash_data.send_proc_data -> response_control.read_proc_data;
-			DC3: port response_control.send_driver_alert -> vehicle_control_data;
-			DC4: port response_control.send_emergency_message -> network_control_event;
+			EC1: port predictor_input -> collision_event_handler.read_unavoidable							{ Communication_Properties::Latency => 8ms .. 12ms; };
+			EC2: port predictor_input -> collision_event_handler.read_avoidable								{ Communication_Properties::Latency => 8ms .. 12ms; };
+			EC3: port collision_event_handler.send_emergency_message -> response_control.predict_cmd		{ Communication_Properties::Latency => 8ms .. 12ms; };
+			EC4: port collision_event_handler.send_driver_alert -> response_control.predict_cmd				{ Communication_Properties::Latency => 8ms .. 12ms; };
+			test1: port collision_event_handler.broad_test -> broadcast_tester.emergency_broad_test			{ Communication_Properties::Latency => 8ms .. 12ms; }; 
+			outcome1: port broad_fail -> broadcast_tester.emergency_broad_fail								{ Communication_Properties::Latency => 8ms .. 12ms; };
+			outcome2: port broad_success -> broadcast_tester.emergency_broad_success						{ Communication_Properties::Latency => 8ms .. 12ms; };	 
+			DC1: port sensor_data -> crash_data.read_vehicle_sensors										{ Communication_Properties::Latency => 8ms .. 12ms; };
+			DC2: port crash_data.send_proc_data -> response_control.read_proc_data							{ Communication_Properties::Latency => 8ms .. 12ms; };
+			DC3: port response_control.send_driver_alert -> vehicle_control_data							{ Communication_Properties::Latency => 8ms .. 12ms; };
+			DC4: port response_control.send_emergency_message -> network_control_event						{ Communication_Properties::Latency => 8ms .. 12ms; };
 		end collision_response_handler.singleton;
 		
 	system response_system
@@ -116,10 +116,10 @@ package response_system
 			emergency_controller: process collision_response_handler.singleton;
 			
 		connections
-			external_message_controller_in: port external_message_unavoidable -> external_message_controller.predictor_input;
-			external_message_controller_in2: port external_message_avoidable -> external_message_controller.predictor_input;
-			driver_controller_unavoidable: port driver_controller.vehicle_control_data -> driver_alert_message;
-			emergency_controller_emergency: port emergency_controller.network_control_event -> emergency_message;
+			external_message_controller_in: port external_message_unavoidable -> external_message_controller.predictor_input	{ Communication_Properties::Latency => 8ms .. 12ms; };
+			external_message_controller_in2: port external_message_avoidable -> external_message_controller.predictor_input		{ Communication_Properties::Latency => 8ms .. 12ms; };
+			driver_controller_unavoidable: port driver_controller.vehicle_control_data -> driver_alert_message					{ Communication_Properties::Latency => 8ms .. 12ms; };
+			emergency_controller_emergency: port emergency_controller.network_control_event -> emergency_message				{ Communication_Properties::Latency => 8ms .. 12ms; };
 			
 	end response_system.standard;	
 end response_system;
