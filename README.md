@@ -1,7 +1,9 @@
-collision_detection_aadl
+[![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.18611.svg)](http://dx.doi.org/10.5281/zenodo.18611)
+
+Collision Detection AADL
 ========================
 
-A AADL model of a collision prevention system for use in a telematics architecture
+A AADL model of a collision prevention system for use in a telematics architecture.  This was done in partial fulfillments of the requirements of CPSC 8750 Clemson University, Spring 2013.
 
 License
 =======
