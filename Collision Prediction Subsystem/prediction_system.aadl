@@ -28,10 +28,10 @@ package prediction_system
 	thread process_data
 		features
 			processed_data: in data port;
-			-- no type of collision could be predicted
-			collision_unprobable: out data port;
 			-- a collision of some type is possible
-			collision_probable: out data port;
+			collision_likely: out data port;
+			-- no type of collision could be predicted
+			collision_unlikely: out data port;
 		properties
 			Dispatch_Protocol => Sporadic;
 			-- this could involve some image processing so provide a bit of extra time
@@ -79,7 +79,7 @@ package prediction_system
 		connections
 			poll_raw_output: port sensor_output -> data_collector.sensor_data									{ Communication_Properties::Latency => 8ms .. 12ms; };
 			process_data: port data_collector.raw_data -> data_processor.processed_data							{ Communication_Properties::Latency => 8ms .. 12ms; };
-			collision_detected: port data_processor.collision_probable -> collision_helper.collision_data		{ Communication_Properties::Latency => 8ms .. 12ms; };
+			collision_detected: port data_processor.collision_likely -> collision_helper.collision_data		{ Communication_Properties::Latency => 8ms .. 12ms; };
 			outcome1: port collision_helper.avoidable_collision_detected -> avoidable_collision_detected		{ Communication_Properties::Latency => 8ms .. 12ms; };
 			outcome2: port collision_helper.unavoidable_collision_detected -> unavoidable_collision_detected	{ Communication_Properties::Latency => 8ms .. 12ms; };
 			false_outcome: port collision_helper.false_positive -> false_positive								{ Communication_Properties::Latency => 8ms .. 12ms; };
@@ -89,15 +89,14 @@ package prediction_system
 			sensor_data_received: mode;
 			sensor_data_processed: mode;
 			check_collision_data: mode;
-			collision_probable: mode;
 			true_positive_detected: mode;
 			false_positive_detected: mode;
 			avoidable_collision: mode;
 			unavoidable_collision: mode;
 			
 			wait_for_sensor-[sensor_output]->sensor_data_received;
-			sensor_data_received-[data_processor.collision_unprobable]->wait_for_sensor;
-			sensor_data_received-[data_processor.collision_probable]->check_collision_data;
+			sensor_data_received-[data_processor.collision_unlikely]->wait_for_sensor;
+			sensor_data_received-[data_processor.collision_likely]->check_collision_data;
 			check_collision_data-[collision_helper.false_positive]->false_positive_detected;
 			false_positive_detected-[collision_helper.false_positive]->wait_for_sensor;
 			check_collision_data-[collision_helper.avoidable_collision_detected]->true_positive_detected;
