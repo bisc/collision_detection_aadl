@@ -1,8 +1,11 @@
-package vehicle
+-- This package describes the (mostly physical) actuation mechanisms of the car. 
+-- This package has several software functions that abstract out physical devices
+
+package vehicle_actuation
 	public
-	with vehicle_devices;
+	with physical_devices;
 	with basic_devices;
-	with basic_debian;
+	with basic_computing;
 	
 	--Polls the ports periodically for a command from the response or avoidance systems
 	thread check_for_command
@@ -75,25 +78,25 @@ package vehicle
 	
 	system implementation vehicle.standard
 		subcomponents
-			brakes: device vehicle_devices::brakes.vehicle;
-			accelerator: device vehicle_devices::accelerator.vehicle;
-			driver_seatbelt: device vehicle_devices::seatbelt_tighener.driver;
-			passenger_seatbelt: device vehicle_devices::seatbelt_tighener.passenger;
-			driver_headrest: device vehicle_devices::headrest_adjuster.driver;
-			passenger_headrest: device vehicle_devices::headrest_adjuster.passenger;
-			driver_seat: device vehicle_devices::seat_adjuster.driver;
-			passenger_seat: device vehicle_devices::seat_adjuster.passenger;
-			airbag: device vehicle_devices::airbag_deployer.vehicle;
-			driver_nudger: device vehicle_devices::nudger.driver;
-			passenger_nudger: device vehicle_devices::nudger.passenger;
-			wheel_turner: device vehicle_devices::automatic_wheel_turner.vehicle;
+			brakes: device physical_devices::brakes.vehicle;
+			accelerator: device physical_devices::accelerator.vehicle;
+			driver_seatbelt: device physical_devices::seatbelt_tighener.driver;
+			passenger_seatbelt: device physical_devices::seatbelt_tighener.passenger;
+			driver_headrest: device physical_devices::headrest_adjuster.driver;
+			passenger_headrest: device physical_devices::headrest_adjuster.passenger;
+			driver_seat: device physical_devices::seat_adjuster.driver;
+			passenger_seat: device physical_devices::seat_adjuster.passenger;
+			airbag: device physical_devices::airbag_deployer.vehicle;
+			driver_nudger: device physical_devices::nudger.driver;
+			passenger_nudger: device physical_devices::nudger.passenger;
+			wheel_turner: device physical_devices::automatic_wheel_turner.vehicle;
 			speed_controller: process control.standard;
 			position_controller: process control.standard;
 			airbag_controller: process control.standard;
 			direction_controller: process control.standard;
-			vehicle_processor: processor basic_debian::real_time.one_ghz;
-			vehicle_memory: memory basic_debian::ram.standard;
-			vehicle_bus: bus basic_debian::basic_bus.standard;
+			vehicle_processor: processor basic_computing::real_time.one_ghz;
+			vehicle_memory: memory basic_computing::ram.standard;
+			vehicle_bus: bus basic_computing::basic_bus.standard;
 		connections
 			event_distribution1: port speed_command -> speed_controller.command_data							{ Communication_Properties::Latency => 8ms .. 12ms; };
 			event_distribution2: port position_command -> position_controller.command_data						{ Communication_Properties::Latency => 8ms .. 12ms; };
@@ -144,4 +147,4 @@ package vehicle
 			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to direction_controller;			
 	end vehicle.standard;
 	
-end vehicle;
+end vehicle_actuation;

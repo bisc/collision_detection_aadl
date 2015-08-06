@@ -1,8 +1,11 @@
-package response_system
+-- The collision response subsystem operates the vehicle in case of unavoidable collisions. 
+-- As a whole, it can be seen as a mode of car's controller.
+
+package response_subsystem
 	public
-	with basic_debian;
+	with basic_computing;
 	with basic_devices;
-	with vehicle;
+	with vehicle_actuation;
 	with prediction_subsystem;
 		
 	--Read event/data from predictor to determine if collision is avoidable/unavoidable
@@ -101,15 +104,15 @@ package response_system
 			DC4: port response_control.send_emergency_message -> network_control_event						{ Communication_Properties::Latency => 8ms .. 12ms; };
 		end collision_response_handler.singleton;
 		
-	system response_system
+	system response_subsystem
 		features
 			external_message_unavoidable: in event data port;
 			external_message_avoidable: in event data port;
 			emergency_message: out event data port;
 			driver_alert_message: out event data port;
-	end response_system;
+	end response_subsystem;
 	
-	system implementation response_system.standard
+	system implementation response_subsystem.standard
 		subcomponents
 			external_message_controller: process collision_response_handler.singleton;
 			driver_controller: process collision_response_handler.singleton;
@@ -121,5 +124,5 @@ package response_system
 			driver_controller_unavoidable: port driver_controller.vehicle_control_data -> driver_alert_message					{ Communication_Properties::Latency => 8ms .. 12ms; };
 			emergency_controller_emergency: port emergency_controller.network_control_event -> emergency_message				{ Communication_Properties::Latency => 8ms .. 12ms; };
 			
-	end response_system.standard;	
-end response_system;
+	end response_subsystem.standard;	
+end response_subsystem;

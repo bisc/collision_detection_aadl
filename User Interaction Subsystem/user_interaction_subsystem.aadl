@@ -1,6 +1,9 @@
-package user_interaction_system
+-- The user interaction subsystem handles the two-way interaction with the driver. 
+-- It handles infotainment functionality and is almost completely separated from safety-critical systems.
+
+package user_interaction_subsystem
 	public
-	with basic_debian;
+	with basic_computing;
 	with basic_devices;
 	
 	thread play_audio
@@ -78,13 +81,13 @@ package user_interaction_system
 	
 	------------------------------------------------------------------------------------------
 	
-	system user_interaction_system
+	system user_interaction_subsystem
 		features
 			message_received_from_user: out event data port;
 			message_to_send_to_user: in event data port;
-	end user_interaction_system;
+	end user_interaction_subsystem;
 	
-	system implementation user_interaction_system.standard
+	system implementation user_interaction_subsystem.standard
 		subcomponents
 			microphone: device basic_devices::microphone.in_vehicle;
 			speaker: device basic_devices::speaker.in_vehicle;
@@ -93,9 +96,9 @@ package user_interaction_system
 			speaker_controller: process speaker_controller.standard;
 			microphone_controller: process microphone_controller.standard;
 		
-			vehicle_processor: processor basic_debian::real_time.one_ghz;
-			vehicle_memory: memory basic_debian::ram.standard;
-			vehicle_bus: bus basic_debian::basic_bus.standard;
+			vehicle_processor: processor basic_computing::real_time.one_ghz;
+			vehicle_memory: memory basic_computing::ram.standard;
+			vehicle_bus: bus basic_computing::basic_bus.standard;
 		connections 
 			microphone_connection: bus access vehicle_bus <-> microphone.ba								{ Communication_Properties::Latency => 8ms .. 12ms; };
 			speaker_connection: bus access vehicle_bus <-> speaker.ba									{ Communication_Properties::Latency => 8ms .. 12ms; };
@@ -112,6 +115,6 @@ package user_interaction_system
 		
 			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to speaker_controller;
 			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to microphone_controller;
-	end user_interaction_system.standard;
+	end user_interaction_subsystem.standard;
 	
-end user_interaction_system;
+end user_interaction_subsystem;

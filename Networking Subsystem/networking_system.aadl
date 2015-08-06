@@ -1,6 +1,8 @@
-package networking_system
+-- The networking subsystem handles communication to other vehicles through various media, and event distribution.
+
+package networking_subsystem
 	public
-	with basic_debian;
+	with basic_computing;
 	with basic_devices;
 	
 	-- Periodically polls sensor to determine if a message has arrived from other vehicles
@@ -116,13 +118,13 @@ package networking_system
 	
 	------------------------------------------------------------------------------------------
 	
-	system networking_system
+	system networking_subsystem
 		features
 			received_message: out data port;
 			message_to_send: in data port;
-	end networking_system;
+	end networking_subsystem;
 	
-	system implementation networking_system.standard
+	system implementation networking_subsystem.standard
 		subcomponents
 			shortwave_receiver: device basic_devices::receiver.shortwave;
 			cellular_receiver: device basic_devices::receiver.cellular;
@@ -135,9 +137,9 @@ package networking_system
 			bus_driver: device basic_devices::bus_driver.standard;
 			event_distributor: device basic_devices::event_distributor.standard;
 			
-			vehicle_processor: processor basic_debian::real_time.one_ghz;
-			vehicle_memory: memory basic_debian::ram.standard;
-			vehicle_bus: bus basic_debian::basic_bus.standard;
+			vehicle_processor: processor basic_computing::real_time.one_ghz;
+			vehicle_memory: memory basic_computing::ram.standard;
+			vehicle_bus: bus basic_computing::basic_bus.standard;
 		connections
 			sw_receiver_connection: bus access vehicle_bus <-> shortwave_receiver.ba			{ Communication_Properties::Latency => 8ms .. 12ms; };
 			cl_receiver_connection: bus access vehicle_bus <-> cellular_receiver.ba				{ Communication_Properties::Latency => 8ms .. 12ms; };
@@ -156,7 +158,7 @@ package networking_system
 			
 			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to sender;
 			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to receiver;
-	end networking_system.standard;
+	end networking_subsystem.standard;
 	
 	
-end networking_system;
+end networking_subsystem;

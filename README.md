@@ -4,13 +4,13 @@ Autonomous Vehicle AADL
 
 This self-driving car model represents the cyber and physical components of a car, and interaction among them.
 
-The main system model is in complete_car_system.aadl. This system composes other subsystems: 
+The main system model is in complete_car_system.aadl. This system consists of six subsystems: 
 * Collision prediction
 * Collision avoidance
 * Collision response
 * Networking
 * User interaction
-* Physical 
+* Physical
 
 The original AADL model of (a collision prevention system for use in a telematics architecture) was done in partial fulfillment of the requirements of CPSC 8750 at Clemson University, Spring 2013. Refer to it as [![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.18611.svg)](http://dx.doi.org/10.5281/zenodo.18611)
 

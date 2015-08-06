@@ -1,9 +1,12 @@
-package avoidance_system
+-- The collision avoidance subsystem operates the vehicle in case of avoidable collisions. 
+-- As a whole, it can be seen as a mode of car's controller. 
+
+package avoidance_subsystem
 	public
 	with prediction_subsystem;
-	with vehicle;
+	with vehicle_actuation;
 	with basic_devices;
-	with basic_debian;
+	with basic_computing;
 	
 	thread data_handler
 		features
@@ -197,7 +200,7 @@ package avoidance_system
 	process implementation collision_threat_handler.B extends collision_threat_handler.A
 	end collision_threat_handler.B;
 	
-	system avoidance_system
+	system avoidance_subsystem
 		features
 			-- Req: sensor data filtered to just that data which pertains to an impending collision
 			motion_unavoidable_port: in data port;
@@ -220,16 +223,16 @@ package avoidance_system
 			-- Provides: Braking and steering commands computed to minimize injury
 			braking_cmd: out event data port;
 			steering_cmd: out event data port;
-	end avoidance_system;
+	end avoidance_subsystem;
 	
-	system implementation avoidance_system.impl
+	system implementation avoidance_subsystem.impl
 		subcomponents
 			avoidance_process_A: process collision_threat_handler.A;
 			avoidance_process_B: process collision_threat_handler.B;
 			watchdog_process: process watchdog_proc.impl;
-			vehicle_processor: processor basic_debian::real_time.one_ghz;
-			vehicle_memory: memory basic_debian::ram.standard;
-			vehicle_bus: bus basic_debian::basic_bus.standard;
+			vehicle_processor: processor basic_computing::real_time.one_ghz;
+			vehicle_memory: memory basic_computing::ram.standard;
+			vehicle_bus: bus basic_computing::basic_bus.standard;
 			bus_driver: device basic_devices::bus_driver.standard;
 			event_distributor: device basic_devices::event_distributor.standard;
 			
@@ -294,6 +297,6 @@ package avoidance_system
 			
 			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to watchdog_process;
 			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to watchdog_process;
-	end avoidance_system.impl;
+	end avoidance_subsystem.impl;
 	
-end avoidance_system;
+end avoidance_subsystem;

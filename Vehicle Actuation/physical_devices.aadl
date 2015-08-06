@@ -1,12 +1,14 @@
-package vehicle_devices
+-- This package describes physical vehicle devices (mostly actuators).
+
+package physical_devices
 	public
-	with basic_debian;
+	with basic_computing;
 	
 	device brakes
 		features
 			engage: in event port;
 			disengage: in event port;
-			ba: requires bus access basic_debian::basic_bus.standard;
+			ba: requires bus access basic_computing::basic_bus.standard;
 	end brakes;
 	
 	device implementation brakes.vehicle
@@ -16,7 +18,7 @@ package vehicle_devices
 		features
 			engage: in event port;
 			disengage: in event port;
-			ba: requires bus access basic_debian::basic_bus.standard;
+			ba: requires bus access basic_computing::basic_bus.standard;
 	end accelerator;
 	
 	device implementation accelerator.vehicle
@@ -28,7 +30,7 @@ package vehicle_devices
 		features
 			engage: in event port;
 			disengage: in event port;
-			ba: requires bus access basic_debian::basic_bus.standard;
+			ba: requires bus access basic_computing::basic_bus.standard;
 	end seatbelt_tighener;
 	
 	device implementation seatbelt_tighener.driver
@@ -43,7 +45,7 @@ package vehicle_devices
 		features
 			engage: in event port;
 			disengage: in event port;
-			ba: requires bus access basic_debian::basic_bus.standard;
+			ba: requires bus access basic_computing::basic_bus.standard;
 	end headrest_adjuster;
 	
 	device implementation headrest_adjuster.driver
@@ -58,7 +60,7 @@ package vehicle_devices
 		features
 			engage: in event port;
 			disengage: in event port;
-			ba: requires bus access basic_debian::basic_bus.standard;
+			ba: requires bus access basic_computing::basic_bus.standard;
 	end seat_adjuster;
 	
 	device implementation seat_adjuster.driver
@@ -73,7 +75,7 @@ package vehicle_devices
 		features
 			engage: in event port;
 			disengage: in event port;
-			ba: requires bus access basic_debian::basic_bus.standard;
+			ba: requires bus access basic_computing::basic_bus.standard;
 	end airbag_deployer;
 	
 	device implementation airbag_deployer.vehicle
@@ -85,7 +87,7 @@ package vehicle_devices
 		features
 			engage: in event port;
 			disengage: in event port;
-			ba: requires bus access basic_debian::basic_bus.standard;
+			ba: requires bus access basic_computing::basic_bus.standard;
 	end nudger;
 	
 	device implementation nudger.driver
@@ -100,10 +102,10 @@ package vehicle_devices
 		features
 			engage: in event data port;
 			disengage: in event port;
-			ba: requires bus access basic_debian::basic_bus.standard;
+			ba: requires bus access basic_computing::basic_bus.standard;
 	end automatic_wheel_turner;
 	
 	device implementation automatic_wheel_turner.vehicle
 	end automatic_wheel_turner.vehicle;
 	
-end vehicle_devices;
+end physical_devices;

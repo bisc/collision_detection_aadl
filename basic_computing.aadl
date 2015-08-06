@@ -1,6 +1,6 @@
--- This package describes basic computing electronics.
+-- This package contains types for basic computing electronics.
 
-package basic_debian
+package basic_computing
 	public
 	with Communication_Properties;
 	
@@ -27,4 +27,4 @@ package basic_debian
 	
 	bus implementation basic_bus.standard
 	end basic_bus.standard;
-end basic_debian;
+end basic_computing;

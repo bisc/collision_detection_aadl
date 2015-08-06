@@ -1,16 +1,16 @@
--- This package describes types of autonomous vehicle devices.
+-- This package contains types of autonomous vehicle devices related to sensing, networking, and user interaction.
 
 package basic_devices
 	public
 	with Timing_Properties;
 	with Communication_Properties;
-	with basic_debian;
+	with basic_computing;
 	
 	-- A generic sensor connected to a bus
 	device sensor
 		features
 			sensor_data:out data port;
-			ba:requires bus access basic_debian::basic_bus.standard;
+			ba:requires bus access basic_computing::basic_bus.standard;
 		properties
 			Timing_Properties::Period => 50ms;
 	end sensor;
@@ -69,7 +69,7 @@ package basic_devices
 	device receiver
 		features
 			received_broadcast:out event data port;
-			ba:requires bus access basic_debian::basic_bus.standard;
+			ba:requires bus access basic_computing::basic_bus.standard;
 	end receiver;
 	
 	--Receiver Implementations
@@ -84,7 +84,7 @@ package basic_devices
 	device broadcaster
 		features
 			broadcast:in event data port;
-			ba:requires bus access basic_debian::basic_bus.standard;
+			ba:requires bus access basic_computing::basic_bus.standard;
 	end broadcaster;
 	
 	--Broadcaster Implementations
@@ -99,7 +99,7 @@ package basic_devices
 	device microphone
 		features
 			spoken_command:out event data port;
-			ba:requires bus access basic_debian::basic_bus.standard;
+			ba:requires bus access basic_computing::basic_bus.standard;
 	end microphone;
 	
 	--Microphone Implementations
@@ -111,7 +111,7 @@ package basic_devices
 	device speaker
 		features
 			audio:in data port;
-			ba:requires bus access basic_debian::basic_bus.standard;
+			ba:requires bus access basic_computing::basic_bus.standard;
 	end speaker;
 	
 	--Speaker Implementations
@@ -123,7 +123,7 @@ package basic_devices
 	device event_distributor
 		features
 			event_data: out event data port;
-			ba: requires bus access basic_debian::basic_bus.standard;
+			ba: requires bus access basic_computing::basic_bus.standard;
 	end event_distributor;
 	
 	--Event Distributor Implementations
@@ -133,7 +133,7 @@ package basic_devices
 	device bus_driver
 		features
 			event_data: in event data port;
-			ba: requires bus access basic_debian::basic_bus.standard;
+			ba: requires bus access basic_computing::basic_bus.standard;
 	end bus_driver;
 	
 	--Bus Driver Implementations

@@ -1,23 +1,23 @@
 package complete_car_system
 public
-	with avoidance_system;
 	with prediction_subsystem;
-	with networking_system;
-	with user_interaction_system;
-	with response_system;
-	with vehicle;
+	with avoidance_subsystem;
+	with response_subsystem;
+	with networking_subsystem;
+	with user_interaction_subsystem;
+	with vehicle_actuation;
 
 	system complete_car
 	end complete_car;
 	
 	system implementation complete_car.impl
 		subcomponents
-			avoider: system avoidance_system::avoidance_system.impl;
+			avoider: system avoidance_subsystem::avoidance_subsystem.impl;
 			predictor: system prediction_subsystem::prediction_subsystem.standard;
-			networker: system networking_system::networking_system.standard;
-			responder: system response_system::response_system.standard;
-			user_interaction: system user_interaction_system::user_interaction_system.standard;
-			vehicle: system vehicle::vehicle.standard;
+			networker: system networking_subsystem::networking_subsystem.standard;
+			responder: system response_subsystem::response_subsystem.standard;
+			user_interaction: system user_interaction_subsystem::user_interaction_subsystem.standard;
+			vehicle: system vehicle_actuation::vehicle.standard;
 		connections
 			external_message: port networker.received_message -> predictor.external_message 											{ Communication_Properties::Latency => 8ms .. 12ms; };
 		
@@ -65,7 +65,7 @@ public
 			no_collision_detected: initial mode;
 	        avoidable_collision: mode;
 	        unavoidable_collision: mode;
-	       
+	        
 	        no_collision_detected-[predictor.false_positive]->no_collision_detected;
 	        no_collision_detected-[predictor.motion_detector_unavoidable]->unavoidable_collision;
 	        no_collision_detected-[predictor.obstacle_detector_unavoidable]->unavoidable_collision;
