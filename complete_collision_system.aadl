@@ -1,7 +1,7 @@
 package complete_collision_system
 public
 	with avoidance_system;
-	with prediction_system;
+	with prediction_subsystem;
 	with networking_system;
 	with user_interaction_system;
 	with response_system;
@@ -13,7 +13,7 @@ public
 	system implementation complete_collision.impl
 		subcomponents
 			avoider: system avoidance_system::avoidance_system.impl;
-			predictor: system prediction_system::prediction_system.standard;
+			predictor: system prediction_subsystem::prediction_subsystem.standard;
 			networker: system networking_system::networking_system.standard;
 			responder: system response_system::response_system.standard;
 			user_interaction: system user_interaction_system::user_interaction_system.standard;
@@ -23,8 +23,8 @@ public
 		
 			motion_unavoidable: port predictor.motion_detector_unavoidable -> avoider.motion_unavoidable_port 							{ Communication_Properties::Latency => 8ms .. 12ms; };
 			motion_avoidable: port predictor.motion_detector_avoidable -> avoider.motion_avoidable_port 								{ Communication_Properties::Latency => 8ms .. 12ms; };
-			debris_unavoidable: port predictor.debris_detector_unavoidable -> avoider.debris_unavoidable_port 							{ Communication_Properties::Latency => 8ms .. 12ms; };
-			debris_avoidable: port predictor.debris_detector_avoidable -> avoider.debris_avoidable_port 								{ Communication_Properties::Latency => 8ms .. 12ms; };
+			debris_unavoidable: port predictor.obstacle_detector_unavoidable -> avoider.debris_unavoidable_port 							{ Communication_Properties::Latency => 8ms .. 12ms; };
+			debris_avoidable: port predictor.obstacle_detector_avoidable -> avoider.debris_avoidable_port 								{ Communication_Properties::Latency => 8ms .. 12ms; };
 			speed_unavoidable: port predictor.speed_detector_unavoidable -> avoider.speed_unavoidable_port 								{ Communication_Properties::Latency => 8ms .. 12ms; };
 			speed_avoidable: port predictor.speed_detector_avoidable -> avoider.speed_avoidable_port 									{ Communication_Properties::Latency => 8ms .. 12ms; };
 			vehicle_unavoidable: port predictor.vehicle_detector_unavoidable -> avoider.vehicle_unavoidable_port 						{ Communication_Properties::Latency => 8ms .. 12ms; };
@@ -40,8 +40,8 @@ public
 			
 			response_motion_unavoidable: port predictor.motion_detector_unavoidable -> responder.external_message_unavoidable 			{ Communication_Properties::Latency => 8ms .. 12ms; };
 	        response_motion_avoidable: port predictor.motion_detector_avoidable -> responder.external_message_avoidable 				{ Communication_Properties::Latency => 8ms .. 12ms; };
-	        response_debris_unavoidable: port predictor.debris_detector_unavoidable -> responder.external_message_unavoidable 			{ Communication_Properties::Latency => 8ms .. 12ms; };
-	        response_debris_avoidable: port predictor.debris_detector_avoidable -> responder.external_message_avoidable 				{ Communication_Properties::Latency => 8ms .. 12ms; };
+	        response_obstacle_unavoidable: port predictor.obstacle_detector_unavoidable -> responder.external_message_unavoidable 			{ Communication_Properties::Latency => 8ms .. 12ms; };
+	        response_obstacle_avoidable: port predictor.obstacle_detector_avoidable -> responder.external_message_avoidable 				{ Communication_Properties::Latency => 8ms .. 12ms; };
 	        response_speed_unavoidable: port predictor.speed_detector_unavoidable -> responder.external_message_unavoidable 			{ Communication_Properties::Latency => 8ms .. 12ms; };
 	        response_speed_avoidable: port predictor.speed_detector_avoidable -> responder.external_message_avoidable 					{ Communication_Properties::Latency => 8ms .. 12ms; };
 	        response_vehicle_unavoidable: port predictor.vehicle_detector_unavoidable -> responder.external_message_unavoidable 		{ Communication_Properties::Latency => 8ms .. 12ms; };
@@ -54,7 +54,7 @@ public
 	        response_driver_avoidable: port predictor.driver_detector_avoidable -> responder.external_message_avoidable			 		{ Communication_Properties::Latency => 8ms .. 12ms; };
 	        response_external_unavoidable: port predictor.external_message_unavoidable -> responder.external_message_unavoidable 		{ Communication_Properties::Latency => 8ms .. 12ms; };
 	        response_external_avoidable: port predictor.external_message_avoidable -> responder.external_message_avoidable 				{ Communication_Properties::Latency => 8ms .. 12ms; };
-	
+	 
 	        send_message_to_external: port responder.emergency_message -> networker.message_to_send 									{ Communication_Properties::Latency => 8ms .. 12ms; };
 	        send_message_to_driver: port responder.driver_alert_message -> user_interaction.message_to_send_to_user 					{ Communication_Properties::Latency => 8ms .. 12ms; };
 	        
@@ -68,7 +68,7 @@ public
 	       
 	        no_collision_detected-[predictor.false_positive]->no_collision_detected;
 	        no_collision_detected-[predictor.motion_detector_unavoidable]->unavoidable_collision;
-	        no_collision_detected-[predictor.debris_detector_unavoidable]->unavoidable_collision;
+	        no_collision_detected-[predictor.obstacle_detector_unavoidable]->unavoidable_collision;
 	        no_collision_detected-[predictor.speed_detector_unavoidable]->unavoidable_collision;
 	        no_collision_detected-[predictor.vehicle_detector_unavoidable]->unavoidable_collision;
 	        no_collision_detected-[predictor.tire_detector_unavoidable]->unavoidable_collision;
@@ -76,7 +76,7 @@ public
 	        no_collision_detected-[predictor.driver_detector_unavoidable]->unavoidable_collision;
 	        no_collision_detected-[predictor.external_message_unavoidable]->unavoidable_collision;
 	        no_collision_detected-[predictor.motion_detector_avoidable]->avoidable_collision;
-	        no_collision_detected-[predictor.debris_detector_avoidable]->avoidable_collision;
+	        no_collision_detected-[predictor.obstacle_detector_avoidable]->avoidable_collision;
 	        no_collision_detected-[predictor.speed_detector_avoidable]->avoidable_collision;
 	        no_collision_detected-[predictor.vehicle_detector_avoidable]->avoidable_collision;
 	        no_collision_detected-[predictor.tire_detector_avoidable]->avoidable_collision;

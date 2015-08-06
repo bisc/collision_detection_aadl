@@ -1,6 +1,6 @@
 package avoidance_system
 	public
-	with prediction_system;
+	with prediction_subsystem;
 	with vehicle;
 	with basic_devices;
 	with basic_debian;

@@ -1,20 +1,24 @@
-package prediction_system
+-- The prediction subsystem monitors car sensors and makes a prediction whether or not a collision is avoidable. 
+-- As a whole, it acts as an intelligent car state estimator. 
+
+package prediction_subsystem
 	public
 	with basic_debian;
 	with basic_devices;
 	with vehicle;
 	
-	-- Periodically read data coming from the sensor and pass the raw data back
-	-- for processing
+	-- Each thread encodes a real-time task
+	
+	-- Periodically reads data from sensors and passes to the processing thread
 	thread read_data
 		features
-			-- data from the sensor received from the bus
+			-- data from sensors received through a bus
 			sensor_data: in data port;
-			-- the raw data from the sensor for processing
+			-- raw sensor data for processing
 			raw_data: out data port;
 		properties
 			Dispatch_Protocol => Periodic;
-			-- this should happen fairly quickly, we are just reading data
+			-- happens quickly because just reading data
 			Compute_Execution_Time => 1ms .. 10ms;
 			Period => 50ms;
 	end read_data;
@@ -23,68 +27,70 @@ package prediction_system
 	end read_data.standard;
 	
 	
-	-- Process the raw data from the sensor and determine if there is the probability
-	-- of an accident.  
+	-- Processes raw sensor data to determine if there a collision is possible
 	thread process_data
 		features
 			processed_data: in data port;
-			-- a collision of some type is possible
+			-- some collision is possible
 			collision_likely: out data port;
-			-- no type of collision could be predicted
+			-- no collision is currently expected 
 			collision_unlikely: out data port;
 		properties
 			Dispatch_Protocol => Sporadic;
-			-- this could involve some image processing so provide a bit of extra time
-			Compute_Execution_Time => 1ms .. 500ms;
+			-- this involves various computing so may take some time
+			Compute_Execution_Time => 1ms .. 50ms;
 	end process_data;
 	
 	thread implementation process_data.standard
 	end process_data.standard;
 	
-	-- If a collision has been detected, is it a true collision.  If so, is it avoidable.
-	thread determine_course
+	-- Determines whether or not a detected collision is avoidable 
+	thread determine_avoidable
 		features
-			-- the data describing the possible collision
+			-- possible collision description
 			collision_data: in data port;
-			-- the data is a false positive
+			-- whether this collision is a false positive
 			false_positive: out event data port;
-			-- the data contains a collision that can probably be avoided
+			-- collision data that can be avoided
 			avoidable_collision_detected: out event data port;
-			-- the data contains a collision that can probably not be avoided
+			-- collision data that can not be avoided
 			unavoidable_collision_detected: out event data port;
 		properties
 			Dispatch_Protocol => Sporadic;
-			-- this should finish fairly quickly
-			Compute_Execution_Time => 1ms .. 50ms;
-	end determine_course;
+			-- a relatively quick decision based on pre-trained algorithms
+			Compute_Execution_Time => 1ms .. 30ms;
+	end determine_avoidable;
 	
-	thread implementation determine_course.standard
-	end determine_course.standard;
+	thread implementation determine_avoidable.standard
+	end determine_avoidable.standard;
 	
 	------------------------------------------------------------------------------------------
 	
-	process control
+	-- Software process running three tasks: data collection, processing, and collision classification. 
+	-- Input: sensor data. Output: avoidable collision/unavoidable collision/false positive. 
+	
+	process predictor
 		features
 			sensor_output: in data port;
 			avoidable_collision_detected: out event data port;
 			unavoidable_collision_detected: out event data port;
 			false_positive: out event data port;
-	end control;
+	end predictor;
 	
-	process implementation control.standard
+	process implementation predictor.standard
 		subcomponents
 			data_collector: thread read_data.standard;
 			data_processor: thread process_data.standard;
-			collision_helper: thread determine_course.standard;
+			collision_classifier: thread determine_avoidable.standard;
 		connections
 			poll_raw_output: port sensor_output -> data_collector.sensor_data									{ Communication_Properties::Latency => 8ms .. 12ms; };
 			process_data: port data_collector.raw_data -> data_processor.processed_data							{ Communication_Properties::Latency => 8ms .. 12ms; };
-			collision_detected: port data_processor.collision_likely -> collision_helper.collision_data		{ Communication_Properties::Latency => 8ms .. 12ms; };
-			outcome1: port collision_helper.avoidable_collision_detected -> avoidable_collision_detected		{ Communication_Properties::Latency => 8ms .. 12ms; };
-			outcome2: port collision_helper.unavoidable_collision_detected -> unavoidable_collision_detected	{ Communication_Properties::Latency => 8ms .. 12ms; };
-			false_outcome: port collision_helper.false_positive -> false_positive								{ Communication_Properties::Latency => 8ms .. 12ms; };
+			collision_detected: port data_processor.collision_likely -> collision_classifier.collision_data		{ Communication_Properties::Latency => 8ms .. 12ms; };
+			outcome1: port collision_classifier.avoidable_collision_detected -> avoidable_collision_detected		{ Communication_Properties::Latency => 8ms .. 12ms; };
+			outcome2: port collision_classifier.unavoidable_collision_detected -> unavoidable_collision_detected	{ Communication_Properties::Latency => 8ms .. 12ms; };
+			false_outcome: port collision_classifier.false_positive -> false_positive								{ Communication_Properties::Latency => 8ms .. 12ms; };
 		modes	
-			-- collision prediction system state machine
+			-- Collision prediction software state machine
 			wait_for_sensor: initial mode;
 			sensor_data_received: mode;
 			sensor_data_processed: mode;
@@ -97,27 +103,27 @@ package prediction_system
 			wait_for_sensor-[sensor_output]->sensor_data_received;
 			sensor_data_received-[data_processor.collision_unlikely]->wait_for_sensor;
 			sensor_data_received-[data_processor.collision_likely]->check_collision_data;
-			check_collision_data-[collision_helper.false_positive]->false_positive_detected;
-			false_positive_detected-[collision_helper.false_positive]->wait_for_sensor;
-			check_collision_data-[collision_helper.avoidable_collision_detected]->true_positive_detected;
-			check_collision_data-[collision_helper.unavoidable_collision_detected]->true_positive_detected;
-			true_positive_detected-[collision_helper.avoidable_collision_detected]->avoidable_collision;
-			true_positive_detected-[collision_helper.unavoidable_collision_detected]->unavoidable_collision;
+			check_collision_data-[collision_classifier.false_positive]->false_positive_detected;
+			false_positive_detected-[collision_classifier.false_positive]->wait_for_sensor;
+			check_collision_data-[collision_classifier.avoidable_collision_detected]->true_positive_detected;
+			check_collision_data-[collision_classifier.unavoidable_collision_detected]->true_positive_detected;
+			true_positive_detected-[collision_classifier.avoidable_collision_detected]->avoidable_collision;
+			true_positive_detected-[collision_classifier.unavoidable_collision_detected]->unavoidable_collision;
 			avoidable_collision-[avoidable_collision_detected]->wait_for_sensor;
 			unavoidable_collision-[unavoidable_collision_detected]->wait_for_sensor;
-	end control.standard;
+	end predictor.standard;
 	
 	------------------------------------------------------------------------------------------
 	
-	system prediction_system
+	system prediction_subsystem
 		features
 			external_message: in data port;
 			external_message_unavoidable: out event data port;
 			external_message_avoidable: out event data port;
 			motion_detector_unavoidable: out event data port;
 			motion_detector_avoidable: out event data port;
-			debris_detector_unavoidable: out event data port;
-			debris_detector_avoidable: out event data port;
+			obstacle_detector_unavoidable: out event data port;
+			obstacle_detector_avoidable: out event data port;
 			speed_detector_unavoidable: out event data port;
 			speed_detector_avoidable: out event data port;
 			vehicle_detector_unavoidable: out event data port;
@@ -129,118 +135,140 @@ package prediction_system
 			driver_detector_unavoidable: out event data port;
 			driver_detector_avoidable: out event data port;
 			false_positive: out event data port;
-	end prediction_system;
+	end prediction_subsystem;
 	
-	system implementation prediction_system.standard
+	system implementation prediction_subsystem.standard
 		subcomponents
-			motion_sensor: device basic_devices::sensor.motion;
-			speed_sensor: device basic_devices::sensor.speed;
-			frontal_debris_sensor: device basic_devices::sensor.frontal_debris;
-			rear_debris_sensor: device basic_devices::sensor.rear_debris;
-			frontal_vehicle_sensor: device basic_devices::sensor.frontal_vehicle;
-			rear_vehicle_sensor: device basic_devices::sensor.rear_vehicle;
-			side_vehicle_sensor: device basic_devices::sensor.side_vehicle;
-			tire_pressure_sensor: device basic_devices::sensor.tire_pressure;
-			tire_tread_sensor: device basic_devices::sensor.tire_tread;
-			wheel_slippage_sensor: device basic_devices::sensor.wheel_slippage;
-			brake_depth_sensor: device basic_devices::sensor.brake_depth;
-			road_conditions_sensor: device basic_devices::sensor.road_conditions;
-			visibility_sensor: device basic_devices::sensor.visibility;
-			driver_responsivity_sensor: device basic_devices::sensor.driver_responsive;
-			driver_impairment_sensor: device basic_devices::sensor.driver_impaired;
-			debris_controller: process control.standard;
-			motion_controller: process control.standard;
-			speed_controller: process control.standard;
-			vehicle_controller: process control.standard;
-			tire_controller: process control.standard;
-			conditions_controller: process control.standard;
-			driver_controller: process control.standard;
-			external_message_controller: process control.standard;
+		
+			-- MOVEMENT SENSORS -- 
+			gps_sensor: device basic_devices::sensor.position; -- determines whether a car is moving
+			magnetic_speedometer: device basic_devices::sensor.speed; -- measures car's current velocity (a classic electromagnetic speedometer)
+			-- TODO add location sensing
+			
+			-- OBSTACLE SENSORS -- 
+			frontal_obstacle_lidar: device basic_devices::sensor.frontal_obstacle; -- measures distance to obstacles in front of the car (lidar technology) 
+			rear_obstalce_lidar: device basic_devices::sensor.rear_obstacle; -- measures distance to obstacles behind the car (lidar technology)
+			frontal_vehicle_c2c_sensor: device basic_devices::sensor.frontal_vehicle; -- measures distance to and speed of vehicles in front of the car (c2c technology) 
+			rear_vehicle_c2c_sensor: device basic_devices::sensor.rear_vehicle; -- measures distance to and speed of vehicles behind the car (c2c technology)
+			side_vehicle_c2c_sensor: device basic_devices::sensor.side_vehicle; -- measures distance to and speed of vehicles on the sides of the car (c2c technology)
+			
+			-- MAINTENANCE SENSORS -- 
+			brake_depth_sensor: device basic_devices::sensor.brake_depth; -- determines whether the brake pads are worn beyond an alert threshold
+			tire_pressure_sensor: device basic_devices::sensor.tire_pressure; -- measures the current tire pressure 
+			tire_tread_sensor: device basic_devices::sensor.tire_tread; -- determines whether the tire thread is worn beyond an alert threshold
+			
+			-- EXTERNAL CONDITIONS SENSORS -- 
+			wheel_slippage_sensor: device basic_devices::sensor.wheel_slippage; -- measures the current degree of wheel slippage
+			road_conditions_sensor: device basic_devices::sensor.road_conditions; -- measures physical parameters of the road (grade, curvature, moisture, ...) 
+			visibility_sensor: device basic_devices::sensor.visibility; -- estimates the visibility distance given current atmospheric conditions
+			
+			-- DRIVER SENSORS -- 
+			driver_responsiveness_sensor: device basic_devices::sensor.driver_responsive; -- approximates the current reaction time of the driver 
+			driver_impairment_sensor: device basic_devices::sensor.driver_impaired; -- determines whether a driver can operate the car or is impaired (unconscious, distracted, injured, ...) 
+			
+			-- PREDICTORS -- 
+			obstacle_predictor: process predictor.standard;
+			motion_predictor: process predictor.standard;
+			speed_predictor: process predictor.standard;
+			vehicle_predictor: process predictor.standard;
+			tire_predictor: process predictor.standard;
+			conditions_predictor: process predictor.standard;
+			driver_predictor: process predictor.standard;
+			external_message_predictor: process predictor.standard;
+			
+			-- ELECTRONICS --
 			vehicle_processor: processor basic_debian::real_time.one_ghz;
 			vehicle_memory: memory basic_debian::ram.standard;
 			vehicle_bus: bus basic_debian::basic_bus.standard;
+			
 		connections
-			motion_sensor_connection: bus access vehicle_bus <-> motion_sensor.ba																{ Communication_Properties::Latency => 8ms .. 12ms; };
-			speed_sensor_connection: bus access vehicle_bus <-> speed_sensor.ba																	{ Communication_Properties::Latency => 8ms .. 12ms; };
-			frontal_debris_sensor_connection: bus access vehicle_bus <-> frontal_debris_sensor.ba												{ Communication_Properties::Latency => 8ms .. 12ms; };
-			rear_debris_sensor_connection: bus access vehicle_bus <-> rear_debris_sensor.ba														{ Communication_Properties::Latency => 8ms .. 12ms; };
-			frontal_vehicle_sensor_connection: bus access vehicle_bus <-> frontal_vehicle_sensor.ba												{ Communication_Properties::Latency => 8ms .. 12ms; };
-			rear_vehicle_sensor_connection: bus access vehicle_bus <-> rear_vehicle_sensor.ba													{ Communication_Properties::Latency => 8ms .. 12ms; };
-			side_vehicle_sensor_connection: bus access vehicle_bus <-> side_vehicle_sensor.ba													{ Communication_Properties::Latency => 8ms .. 12ms; };
+			-- sensor connections
+			motion_sensor_connection: bus access vehicle_bus <-> gps_sensor.ba																{ Communication_Properties::Latency => 8ms .. 12ms; };
+			speed_sensor_connection: bus access vehicle_bus <-> magnetic_speedometer.ba																	{ Communication_Properties::Latency => 8ms .. 12ms; };
+			frontal_obstacle_sensor_connection: bus access vehicle_bus <-> frontal_obstacle_lidar.ba												{ Communication_Properties::Latency => 8ms .. 12ms; };
+			rear_obstacle_sensor_connection: bus access vehicle_bus <-> rear_obstalce_lidar.ba														{ Communication_Properties::Latency => 8ms .. 12ms; };
+			frontal_vehicle_sensor_connection: bus access vehicle_bus <-> frontal_vehicle_c2c_sensor.ba												{ Communication_Properties::Latency => 8ms .. 12ms; };
+			rear_vehicle_sensor_connection: bus access vehicle_bus <-> rear_vehicle_c2c_sensor.ba													{ Communication_Properties::Latency => 8ms .. 12ms; };
+			side_vehicle_sensor_connection: bus access vehicle_bus <-> side_vehicle_c2c_sensor.ba													{ Communication_Properties::Latency => 8ms .. 12ms; };
 			tire_pressure_sensor_connection: bus access vehicle_bus <-> tire_pressure_sensor.ba													{ Communication_Properties::Latency => 8ms .. 12ms; };
 			tire_tread_sensor_connection: bus access vehicle_bus <-> tire_tread_sensor.ba														{ Communication_Properties::Latency => 8ms .. 12ms; };
 			wheel_slippage_sensor_connection: bus access vehicle_bus <-> wheel_slippage_sensor.ba												{ Communication_Properties::Latency => 8ms .. 12ms; };
 			brake_depth_sensor_connection: bus access vehicle_bus <-> brake_depth_sensor.ba														{ Communication_Properties::Latency => 8ms .. 12ms; };
 			road_conditions_sensor_connection: bus access vehicle_bus <-> road_conditions_sensor.ba												{ Communication_Properties::Latency => 8ms .. 12ms; };
 			visibility_sensor_connection: bus access vehicle_bus <-> visibility_sensor.ba														{ Communication_Properties::Latency => 8ms .. 12ms; };
-			driver_responsivity_sensor_connection: bus access vehicle_bus <-> driver_responsivity_sensor.ba										{ Communication_Properties::Latency => 8ms .. 12ms; };
+			driver_responsivity_sensor_connection: bus access vehicle_bus <-> driver_responsiveness_sensor.ba										{ Communication_Properties::Latency => 8ms .. 12ms; };
 			driver_impairment_sensor_connection: bus access vehicle_bus <-> driver_impairment_sensor.ba											{ Communication_Properties::Latency => 8ms .. 12ms; };
 			
-			motion_controller_in: port motion_sensor.sensor_data -> motion_controller.sensor_output												{ Communication_Properties::Latency => 8ms .. 12ms; };
-			speed_controller_in: port speed_sensor.sensor_data -> speed_controller.sensor_output												{ Communication_Properties::Latency => 8ms .. 12ms; };
-			debris_controller_in1: port frontal_debris_sensor.sensor_data -> debris_controller.sensor_output									{ Communication_Properties::Latency => 8ms .. 12ms; };
-			debris_controller_in2: port rear_debris_sensor.sensor_data -> debris_controller.sensor_output										{ Communication_Properties::Latency => 8ms .. 12ms; };
-			vehicle_controller_in1: port frontal_vehicle_sensor.sensor_data -> vehicle_controller.sensor_output									{ Communication_Properties::Latency => 8ms .. 12ms; };
-			vehicle_controller_in2: port rear_vehicle_sensor.sensor_data -> vehicle_controller.sensor_output									{ Communication_Properties::Latency => 8ms .. 12ms; };
-			vehicle_controller_in3: port side_vehicle_sensor.sensor_data -> vehicle_controller.sensor_output									{ Communication_Properties::Latency => 8ms .. 12ms; };
-			tire_controller_in1: port tire_pressure_sensor.sensor_data -> tire_controller.sensor_output											{ Communication_Properties::Latency => 8ms .. 12ms; };
-			tire_controller_in2: port tire_tread_sensor.sensor_data -> tire_controller.sensor_output											{ Communication_Properties::Latency => 8ms .. 12ms; };
-			tire_controller_in3: port wheel_slippage_sensor.sensor_data -> tire_controller.sensor_output										{ Communication_Properties::Latency => 8ms .. 12ms; };
-			conditions_controller_in: port road_conditions_sensor.sensor_data -> conditions_controller.sensor_output							{ Communication_Properties::Latency => 8ms .. 12ms; };
-			driver_controller_in1: port driver_responsivity_sensor.sensor_data -> driver_controller.sensor_output								{ Communication_Properties::Latency => 8ms .. 12ms; };
-			driver_controller_in2: port driver_impairment_sensor.sensor_data -> driver_controller.sensor_output									{ Communication_Properties::Latency => 8ms .. 12ms; };
-			external_message_controller_in: port external_message -> external_message_controller.sensor_output									{ Communication_Properties::Latency => 8ms .. 12ms; };
+			-- predictor connections
+			motion_predictor_in: port gps_sensor.sensor_data -> motion_predictor.sensor_output												{ Communication_Properties::Latency => 8ms .. 12ms; };
+			speed_predictor_in: port magnetic_speedometer.sensor_data -> speed_predictor.sensor_output												{ Communication_Properties::Latency => 8ms .. 12ms; };
+			obstacle_predictor_in1: port frontal_obstacle_lidar.sensor_data -> obstacle_predictor.sensor_output									{ Communication_Properties::Latency => 8ms .. 12ms; };
+			obstacle_predictor_in2: port rear_obstalce_lidar.sensor_data -> obstacle_predictor.sensor_output										{ Communication_Properties::Latency => 8ms .. 12ms; };
+			vehicle_predictor_in1: port frontal_vehicle_c2c_sensor.sensor_data -> vehicle_predictor.sensor_output									{ Communication_Properties::Latency => 8ms .. 12ms; };
+			vehicle_predictor_in2: port rear_vehicle_c2c_sensor.sensor_data -> vehicle_predictor.sensor_output									{ Communication_Properties::Latency => 8ms .. 12ms; };
+			vehicle_predictor_in3: port side_vehicle_c2c_sensor.sensor_data -> vehicle_predictor.sensor_output									{ Communication_Properties::Latency => 8ms .. 12ms; };
+			tire_predictor_in1: port tire_pressure_sensor.sensor_data -> tire_predictor.sensor_output											{ Communication_Properties::Latency => 8ms .. 12ms; };
+			tire_predictor_in2: port tire_tread_sensor.sensor_data -> tire_predictor.sensor_output											{ Communication_Properties::Latency => 8ms .. 12ms; };
+			tire_predictor_in3: port wheel_slippage_sensor.sensor_data -> tire_predictor.sensor_output										{ Communication_Properties::Latency => 8ms .. 12ms; };
+			conditions_predictor_in: port road_conditions_sensor.sensor_data -> conditions_predictor.sensor_output							{ Communication_Properties::Latency => 8ms .. 12ms; };
+			driver_predictor_in1: port driver_responsiveness_sensor.sensor_data -> driver_predictor.sensor_output								{ Communication_Properties::Latency => 8ms .. 12ms; };
+			driver_predictor_in2: port driver_impairment_sensor.sensor_data -> driver_predictor.sensor_output									{ Communication_Properties::Latency => 8ms .. 12ms; };
+			external_message_predictor_in: port external_message -> external_message_predictor.sensor_output									{ Communication_Properties::Latency => 8ms .. 12ms; };
 			
-			motion_controller_avoidable: port motion_controller.avoidable_collision_detected -> motion_detector_avoidable						{ Communication_Properties::Latency => 8ms .. 12ms; };
-			motion_controller_unavoidable: port motion_controller.unavoidable_collision_detected -> motion_detector_unavoidable					{ Communication_Properties::Latency => 8ms .. 12ms; };
-			motion_controller_false_positive: port motion_controller.false_positive -> false_positive											{ Communication_Properties::Latency => 8ms .. 12ms; };
-			speed_controller_avoidable: port speed_controller.avoidable_collision_detected -> speed_detector_avoidable							{ Communication_Properties::Latency => 8ms .. 12ms; };
-			speed_controller_unavoidable: port speed_controller.unavoidable_collision_detected -> speed_detector_unavoidable					{ Communication_Properties::Latency => 8ms .. 12ms; };
-			speed_controller_false_positive: port speed_controller.false_positive -> false_positive												{ Communication_Properties::Latency => 8ms .. 12ms; };
-			debris_controller_avoidable: port debris_controller.avoidable_collision_detected -> debris_detector_avoidable						{ Communication_Properties::Latency => 8ms .. 12ms; };
-			debris_controller_unavoidable: port debris_controller.unavoidable_collision_detected -> debris_detector_unavoidable					{ Communication_Properties::Latency => 8ms .. 12ms; };
-			debris_controller_false_positive: port debris_controller.false_positive -> false_positive											{ Communication_Properties::Latency => 8ms .. 12ms; };
-			vehicle_controller_avoidable: port vehicle_controller.avoidable_collision_detected -> vehicle_detector_avoidable					{ Communication_Properties::Latency => 8ms .. 12ms; };
-			vehicle_controller_unavoidable: port vehicle_controller.unavoidable_collision_detected -> vehicle_detector_unavoidable				{ Communication_Properties::Latency => 8ms .. 12ms; };
-			vehicle_controller_false_positive: port vehicle_controller.false_positive -> false_positive											{ Communication_Properties::Latency => 8ms .. 12ms; };
-			tire_controller_avoidable: port tire_controller.avoidable_collision_detected -> tire_detector_avoidable								{ Communication_Properties::Latency => 8ms .. 12ms; };
-			tire_controller_unavoidable: port tire_controller.unavoidable_collision_detected -> tire_detector_unavoidable						{ Communication_Properties::Latency => 8ms .. 12ms; };
-			tire_controller_false_positive: port tire_controller.false_positive -> false_positive												{ Communication_Properties::Latency => 8ms .. 12ms; };
-			conditions_controller_avoidable: port conditions_controller.avoidable_collision_detected -> conditions_detector_avoidable			{ Communication_Properties::Latency => 8ms .. 12ms; };
-			conditions_controller_unavoidable: port conditions_controller.unavoidable_collision_detected -> conditions_detector_unavoidable		{ Communication_Properties::Latency => 8ms .. 12ms; };
-			conditions_controller_false_positive: port conditions_controller.false_positive -> false_positive									{ Communication_Properties::Latency => 8ms .. 12ms; };
-			driver_controller_avoidable: port driver_controller.avoidable_collision_detected -> driver_detector_avoidable						{ Communication_Properties::Latency => 8ms .. 12ms; };
-			driver_controller_unavoidable: port driver_controller.unavoidable_collision_detected -> driver_detector_unavoidable					{ Communication_Properties::Latency => 8ms .. 12ms; };
-			driver_controller_false_positive: port driver_controller.false_positive -> false_positive											{ Communication_Properties::Latency => 8ms .. 12ms; };
-			external_message_out_avoidable: port external_message_controller.avoidable_collision_detected -> external_message_avoidable			{ Communication_Properties::Latency => 8ms .. 12ms; };
-			external_message_out_unavoidable: port external_message_controller.unavoidable_collision_detected -> external_message_unavoidable	{ Communication_Properties::Latency => 8ms .. 12ms; };
-			external_message_controller_false_positive: port external_message_controller.false_positive -> false_positive						{ Communication_Properties::Latency => 8ms .. 12ms; };
+			motion_predictor_avoidable: port motion_predictor.avoidable_collision_detected -> motion_detector_avoidable						{ Communication_Properties::Latency => 8ms .. 12ms; };
+			motion_predictor_unavoidable: port motion_predictor.unavoidable_collision_detected -> motion_detector_unavoidable					{ Communication_Properties::Latency => 8ms .. 12ms; };
+			motion_predictor_false_positive: port motion_predictor.false_positive -> false_positive											{ Communication_Properties::Latency => 8ms .. 12ms; };
+			speed_predictor_avoidable: port speed_predictor.avoidable_collision_detected -> speed_detector_avoidable							{ Communication_Properties::Latency => 8ms .. 12ms; };
+			speed_predictor_unavoidable: port speed_predictor.unavoidable_collision_detected -> speed_detector_unavoidable					{ Communication_Properties::Latency => 8ms .. 12ms; };
+			speed_predictor_false_positive: port speed_predictor.false_positive -> false_positive												{ Communication_Properties::Latency => 8ms .. 12ms; };
+			obstacle_predictor_avoidable: port obstacle_predictor.avoidable_collision_detected -> obstacle_detector_avoidable						{ Communication_Properties::Latency => 8ms .. 12ms; };
+			obstacle_predictor_unavoidable: port obstacle_predictor.unavoidable_collision_detected -> obstacle_detector_unavoidable					{ Communication_Properties::Latency => 8ms .. 12ms; };
+			obstacle_predictor_false_positive: port obstacle_predictor.false_positive -> false_positive											{ Communication_Properties::Latency => 8ms .. 12ms; };
+			vehicle_predictor_avoidable: port vehicle_predictor.avoidable_collision_detected -> vehicle_detector_avoidable					{ Communication_Properties::Latency => 8ms .. 12ms; };
+			vehicle_predictor_unavoidable: port vehicle_predictor.unavoidable_collision_detected -> vehicle_detector_unavoidable				{ Communication_Properties::Latency => 8ms .. 12ms; };
+			vehicle_predictor_false_positive: port vehicle_predictor.false_positive -> false_positive											{ Communication_Properties::Latency => 8ms .. 12ms; };
+			tire_predictor_avoidable: port tire_predictor.avoidable_collision_detected -> tire_detector_avoidable								{ Communication_Properties::Latency => 8ms .. 12ms; };
+			tire_predictor_unavoidable: port tire_predictor.unavoidable_collision_detected -> tire_detector_unavoidable						{ Communication_Properties::Latency => 8ms .. 12ms; };
+			tire_predictor_false_positive: port tire_predictor.false_positive -> false_positive												{ Communication_Properties::Latency => 8ms .. 12ms; };
+			conditions_predictor_avoidable: port conditions_predictor.avoidable_collision_detected -> conditions_detector_avoidable			{ Communication_Properties::Latency => 8ms .. 12ms; };
+			conditions_predictor_unavoidable: port conditions_predictor.unavoidable_collision_detected -> conditions_detector_unavoidable		{ Communication_Properties::Latency => 8ms .. 12ms; };
+			conditions_predictor_false_positive: port conditions_predictor.false_positive -> false_positive									{ Communication_Properties::Latency => 8ms .. 12ms; };
+			driver_predictor_avoidable: port driver_predictor.avoidable_collision_detected -> driver_detector_avoidable						{ Communication_Properties::Latency => 8ms .. 12ms; };
+			driver_predictor_unavoidable: port driver_predictor.unavoidable_collision_detected -> driver_detector_unavoidable					{ Communication_Properties::Latency => 8ms .. 12ms; };
+			driver_predictor_false_positive: port driver_predictor.false_positive -> false_positive											{ Communication_Properties::Latency => 8ms .. 12ms; };
+			external_message_out_avoidable: port external_message_predictor.avoidable_collision_detected -> external_message_avoidable			{ Communication_Properties::Latency => 8ms .. 12ms; };
+			external_message_out_unavoidable: port external_message_predictor.unavoidable_collision_detected -> external_message_unavoidable	{ Communication_Properties::Latency => 8ms .. 12ms; };
+			external_message_predictor_false_positive: port external_message_predictor.false_positive -> false_positive						{ Communication_Properties::Latency => 8ms .. 12ms; };
+			
 		properties
-			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to motion_controller.data_collector;
-			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to motion_controller.data_processor;
-			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to speed_controller.data_collector;
-			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to speed_controller.data_processor;
-			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to debris_controller.data_collector;
-			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to debris_controller.data_processor;
-			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to vehicle_controller.data_collector;
-			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to vehicle_controller.data_processor;
-			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to tire_controller.data_collector;
-			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to tire_controller.data_processor;
-			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to conditions_controller.data_collector;
-			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to conditions_controller.data_processor;
-			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to driver_controller.data_collector;
-			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to driver_controller.data_processor;
-			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to external_message_controller.data_collector;
-			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to external_message_controller.data_processor;
+			-- cpu allocations
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to motion_predictor.data_collector;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to motion_predictor.data_processor;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to speed_predictor.data_collector;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to speed_predictor.data_processor;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to obstacle_predictor.data_collector;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to obstacle_predictor.data_processor;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to vehicle_predictor.data_collector;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to vehicle_predictor.data_processor;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to tire_predictor.data_collector;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to tire_predictor.data_processor;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to conditions_predictor.data_collector;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to conditions_predictor.data_processor;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to driver_predictor.data_collector;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to driver_predictor.data_processor;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to external_message_predictor.data_collector;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to external_message_predictor.data_processor;
 			
-			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to speed_controller;
-			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to motion_controller;
-			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to debris_controller;
-			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to vehicle_controller;
-			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to tire_controller;
-			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to conditions_controller;
-			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to driver_controller;
-			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to external_message_controller;
-	end prediction_system.standard;
+			-- memory allocations 
+			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to speed_predictor;
+			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to motion_predictor;
+			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to obstacle_predictor;
+			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to vehicle_predictor;
+			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to tire_predictor;
+			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to conditions_predictor;
+			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to driver_predictor;
+			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to external_message_predictor;
+			
+	end prediction_subsystem.standard;
 	
-end prediction_system;
+end prediction_subsystem;

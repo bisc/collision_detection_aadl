@@ -3,12 +3,12 @@ package response_system
 	with basic_debian;
 	with basic_devices;
 	with vehicle;
-	with prediction_system;
+	with prediction_subsystem;
 		
 	--Read event/data from predictor to determine if collision is avoidable/unavoidable
 	--If unavoidable, send emergency message to emergency responders and send alert to driver of imminent crash
 	thread event_handler
-		features 
+		features  
 			--Received message from predictor that crash unavoidable
 			read_unavoidable: in event data port;
 			--Received message from predictor that crash avoidable

@@ -1,3 +1,5 @@
+-- This package describes basic computing electronics.
+
 package basic_debian
 	public
 	with Communication_Properties;

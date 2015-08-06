@@ -1,9 +1,12 @@
+-- This package describes types of autonomous vehicle devices.
+
 package basic_devices
 	public
 	with Timing_Properties;
 	with Communication_Properties;
 	with basic_debian;
 	
+	-- A generic sensor connected to a bus
 	device sensor
 		features
 			sensor_data:out data port;
@@ -12,18 +15,18 @@ package basic_devices
 			Timing_Properties::Period => 50ms;
 	end sensor;
 	
-	--Sensor Implementations
-	device implementation sensor.motion
-	end sensor.motion;
+	-- Concrete sensor implementation
+	device implementation sensor.position
+	end sensor.position;
 
 	device implementation sensor.speed
 	end sensor.speed;
 		
-	device implementation sensor.frontal_debris
-	end sensor.frontal_debris;
+	device implementation sensor.frontal_obstacle
+	end sensor.frontal_obstacle;
 	
-	device implementation sensor.rear_debris
-	end sensor.rear_debris;
+	device implementation sensor.rear_obstacle
+	end sensor.rear_obstacle;
 	
 	device implementation sensor.frontal_vehicle
 	end sensor.frontal_vehicle;

@@ -3,15 +3,16 @@
 Collision Detection AADL
 ========================
 
-A AADL model of a collision prevention system for use in a telematics architecture.  This was done in partial fulfillments of the requirements of CPSC 8750 Clemson University, Spring 2013.
+The original AADL model of (a collision prevention system for use in a telematics architecture) was done in partial fulfillments of the requirements of CPSC 8750 Clemson University, Spring 2013.
 
 License
 =======
 
 The MIT License (MIT)
 
-Copyright (c) 2015 Ivan Ruchkin
-The original model and copyright is by Nicholas Guzzardo, Mike Kabbani, Ethan McGee (2013)
+Copyright (c) 2015 Ivan Ruchkin.
+
+The original model and copyright is by Nicholas Guzzardo, Mike Kabbani, Ethan McGee (2013).
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
