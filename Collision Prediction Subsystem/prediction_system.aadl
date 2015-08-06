@@ -143,11 +143,10 @@ package prediction_subsystem
 			-- MOVEMENT SENSORS -- 
 			gps_sensor: device basic_devices::sensor.position; -- determines whether a car is moving
 			magnetic_speedometer: device basic_devices::sensor.speed; -- measures car's current velocity (a classic electromagnetic speedometer)
-			-- TODO add location sensing
 			
 			-- OBSTACLE SENSORS -- 
 			frontal_obstacle_lidar: device basic_devices::sensor.frontal_obstacle; -- measures distance to obstacles in front of the car (lidar technology) 
-			rear_obstalce_lidar: device basic_devices::sensor.rear_obstacle; -- measures distance to obstacles behind the car (lidar technology)
+			rear_obstacle_lidar: device basic_devices::sensor.rear_obstacle; -- measures distance to obstacles behind the car (lidar technology)
 			frontal_vehicle_c2c_sensor: device basic_devices::sensor.frontal_vehicle; -- measures distance to and speed of vehicles in front of the car (c2c technology) 
 			rear_vehicle_c2c_sensor: device basic_devices::sensor.rear_vehicle; -- measures distance to and speed of vehicles behind the car (c2c technology)
 			side_vehicle_c2c_sensor: device basic_devices::sensor.side_vehicle; -- measures distance to and speed of vehicles on the sides of the car (c2c technology)
@@ -167,14 +166,14 @@ package prediction_subsystem
 			driver_impairment_sensor: device basic_devices::sensor.driver_impaired; -- determines whether a driver can operate the car or is impaired (unconscious, distracted, injured, ...) 
 			
 			-- PREDICTORS -- 
-			obstacle_predictor: process predictor.standard;
-			motion_predictor: process predictor.standard;
-			speed_predictor: process predictor.standard;
-			vehicle_predictor: process predictor.standard;
-			tire_predictor: process predictor.standard;
-			conditions_predictor: process predictor.standard;
-			driver_predictor: process predictor.standard;
-			external_message_predictor: process predictor.standard;
+			motion_predictor: process predictor.standard; -- predicts the car's trajectory
+			vehicle_predictor: process predictor.standard; -- predicts other cars' trajectories
+			obstacle_predictor: process predictor.standard; -- predicts obstacle trajectories and locations
+			speed_predictor: process predictor.standard; -- predicts the car's speed 
+			tire_predictor: process predictor.standard; -- predicts the state of car tires
+			conditions_predictor: process predictor.standard; -- predicts the external conditions
+			driver_predictor: process predictor.standard; -- predicts the driver's state 
+			external_message_predictor: process predictor.standard; -- reads external messages and determines if there is an upcoming collision
 			
 			-- ELECTRONICS --
 			vehicle_processor: processor basic_debian::real_time.one_ghz;
@@ -186,7 +185,7 @@ package prediction_subsystem
 			motion_sensor_connection: bus access vehicle_bus <-> gps_sensor.ba																{ Communication_Properties::Latency => 8ms .. 12ms; };
 			speed_sensor_connection: bus access vehicle_bus <-> magnetic_speedometer.ba																	{ Communication_Properties::Latency => 8ms .. 12ms; };
 			frontal_obstacle_sensor_connection: bus access vehicle_bus <-> frontal_obstacle_lidar.ba												{ Communication_Properties::Latency => 8ms .. 12ms; };
-			rear_obstacle_sensor_connection: bus access vehicle_bus <-> rear_obstalce_lidar.ba														{ Communication_Properties::Latency => 8ms .. 12ms; };
+			rear_obstacle_sensor_connection: bus access vehicle_bus <-> rear_obstacle_lidar.ba														{ Communication_Properties::Latency => 8ms .. 12ms; };
 			frontal_vehicle_sensor_connection: bus access vehicle_bus <-> frontal_vehicle_c2c_sensor.ba												{ Communication_Properties::Latency => 8ms .. 12ms; };
 			rear_vehicle_sensor_connection: bus access vehicle_bus <-> rear_vehicle_c2c_sensor.ba													{ Communication_Properties::Latency => 8ms .. 12ms; };
 			side_vehicle_sensor_connection: bus access vehicle_bus <-> side_vehicle_c2c_sensor.ba													{ Communication_Properties::Latency => 8ms .. 12ms; };
@@ -203,7 +202,7 @@ package prediction_subsystem
 			motion_predictor_in: port gps_sensor.sensor_data -> motion_predictor.sensor_output												{ Communication_Properties::Latency => 8ms .. 12ms; };
 			speed_predictor_in: port magnetic_speedometer.sensor_data -> speed_predictor.sensor_output												{ Communication_Properties::Latency => 8ms .. 12ms; };
 			obstacle_predictor_in1: port frontal_obstacle_lidar.sensor_data -> obstacle_predictor.sensor_output									{ Communication_Properties::Latency => 8ms .. 12ms; };
-			obstacle_predictor_in2: port rear_obstalce_lidar.sensor_data -> obstacle_predictor.sensor_output										{ Communication_Properties::Latency => 8ms .. 12ms; };
+			obstacle_predictor_in2: port rear_obstacle_lidar.sensor_data -> obstacle_predictor.sensor_output										{ Communication_Properties::Latency => 8ms .. 12ms; };
 			vehicle_predictor_in1: port frontal_vehicle_c2c_sensor.sensor_data -> vehicle_predictor.sensor_output									{ Communication_Properties::Latency => 8ms .. 12ms; };
 			vehicle_predictor_in2: port rear_vehicle_c2c_sensor.sensor_data -> vehicle_predictor.sensor_output									{ Communication_Properties::Latency => 8ms .. 12ms; };
 			vehicle_predictor_in3: port side_vehicle_c2c_sensor.sensor_data -> vehicle_predictor.sensor_output									{ Communication_Properties::Latency => 8ms .. 12ms; };

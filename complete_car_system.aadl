@@ -1,4 +1,4 @@
-package complete_collision_system
+package complete_car_system
 public
 	with avoidance_system;
 	with prediction_subsystem;
@@ -7,10 +7,10 @@ public
 	with response_system;
 	with vehicle;
 
-	system complete_collision
-	end complete_collision;
+	system complete_car
+	end complete_car;
 	
-	system implementation complete_collision.impl
+	system implementation complete_car.impl
 		subcomponents
 			avoider: system avoidance_system::avoidance_system.impl;
 			predictor: system prediction_subsystem::prediction_subsystem.standard;
@@ -83,5 +83,5 @@ public
 	        no_collision_detected-[predictor.conditions_detector_avoidable]->avoidable_collision;
 	        no_collision_detected-[predictor.driver_detector_avoidable]->avoidable_collision;
 	        no_collision_detected-[predictor.external_message_avoidable]->avoidable_collision;
-	end complete_collision.impl;
-end complete_collision_system;
+	end complete_car.impl;
+end complete_car_system;
