@@ -2,32 +2,60 @@
 
 package basic_sensors
 	public
-	with basic_computing;
+	with basic_computing, 
+		Sensor_Properties,
+		Security_Properties;
 	
 	-- A generic sensor connected to a bus
+	-- Contains failure modes 
 	device sensor
 		features
 			sensor_data:out data port;
 			ba:requires bus access basic_computing::basic_bus.standard;
+		requires modes 
+			avail_trust: initial mode;
+			avail_untrust: mode;
+			unavail: mode;
 		properties
+			-- non-modal properties
 			Timing_Properties::Period => 50ms;
---			Timing_Properties::Activate_Deadline; 
+			Sensor_Properties::Pow => true;
+			
+			-- modal properties
+			Security_Properties::Trustworthiness => 
+				true in modes (avail_trust, unavail), -- for unambiguity we assume that unavailable sensors are trustworthy
+				false in modes (avail_untrust);
+				
+			Sensor_Properties::Avail => 
+				true in modes (avail_trust, avail_untrust),
+				false in modes (unavail);
+			
 	end sensor;
 	
-	-- Concrete sensor implementation
-	device implementation sensor.position
-	end sensor.position;
-
-	device implementation sensor.speed
-	end sensor.speed;
+	-- Concrete sensor types and implementations
+	-- Only those variables specified that are considered in the analysis example
+	
+	device implementation sensor.gps
+		properties
+			Sensor_Properties::VarsS => (Position);
+	end sensor.gps;
+	
+	device implementation sensor.speedometer
+		properties
+			Sensor_Properties::VarsS => (Velocity);
+	end sensor.speedometer;
 		
 	device implementation sensor.frontal_obstacle
+		properties
+			Sensor_Properties::VarsS => (Distance);
 	end sensor.frontal_obstacle;
 	
 	device implementation sensor.rear_obstacle
 	end sensor.rear_obstacle;
 	
 	device implementation sensor.frontal_vehicle
+		properties
+			Sensor_Properties::VarsS => (Distance);
 	end sensor.frontal_vehicle;
 	
 	device implementation sensor.rear_vehicle

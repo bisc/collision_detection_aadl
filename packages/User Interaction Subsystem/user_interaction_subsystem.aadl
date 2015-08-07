@@ -7,6 +7,7 @@ package user_interaction_subsystem
 	with basic_devices;
 	with basic_sensors;
 	
+	-- plays audio through speakers
 	thread play_audio
 		features
 			-- the text to be spoken
@@ -21,6 +22,7 @@ package user_interaction_subsystem
 	thread implementation play_audio.standard
 	end play_audio.standard;
 	
+	-- listening to the speaker
 	thread listen_for_audio
 		features
 			-- audio is available for processing
@@ -35,6 +37,7 @@ package user_interaction_subsystem
 	thread implementation listen_for_audio.standard
 	end listen_for_audio.standard;
 	
+	-- speech to text
 	thread convert_to_text
 		features
 			-- the audio spoken by the driver

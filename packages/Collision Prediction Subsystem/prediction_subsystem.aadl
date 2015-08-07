@@ -115,6 +115,7 @@ package prediction_subsystem
 	
 	------------------------------------------------------------------------------------------
 	
+	-- a full prediction subsystem type
 	system prediction_subsystem
 		features
 			external_message: in data port;
@@ -135,19 +136,56 @@ package prediction_subsystem
 			driver_detector_unavoidable: out event data port;
 			driver_detector_avoidable: out event data port;
 			false_positive: out event data port;
+				
+		-- subsystem modes are matched with the full system 
+		requires modes
+			nominal: initial mode;
+			fail_mode_1: mode; 
+			fail_mode_2: mode;
+			fail_mode_3: mode;
+			
 	end prediction_subsystem;
 	
+	-- Here we set the correspondence between subsystem modes and sensor modes
 	system implementation prediction_subsystem.standard
 		subcomponents
 		
 			-- MOVEMENT SENSORS -- 
-			gps_sensor: device basic_sensors::sensor.position; -- determines whether a car is moving
-			magnetic_speedometer: device basic_sensors::sensor.speed; -- measures car's current velocity (a classic electromagnetic speedometer)
+			gps_sensor: device basic_sensors::sensor.gps -- determines whether a car is moving
+				in modes (
+					nominal => avail_untrust, 
+					fail_mode_1 => avail_untrust, 
+					fail_mode_2 => avail_untrust, 
+					fail_mode_3 => avail_untrust
+				); 
+				
+			magnetic_speedometer: device basic_sensors::sensor.speedometer  -- measures car's current velocity (a classic electromagnetic speedometer)
+				in modes (
+					nominal => avail_trust, 
+					fail_mode_1 => avail_trust, 
+					fail_mode_2 => avail_trust, 
+					fail_mode_3 => unavail
+				); 
 			
 			-- OBSTACLE SENSORS -- 
-			frontal_obstacle_lidar: device basic_sensors::sensor.frontal_obstacle; -- measures distance to obstacles in front of the car (lidar technology) 
+			frontal_obstacle_lidar: device basic_sensors::sensor.frontal_obstacle -- measures distance to obstacles in front of the car (lidar technology) 
+				in modes (
+					nominal => avail_trust, 
+					fail_mode_1 => unavail, 
+					fail_mode_2 => avail_trust, 
+					fail_mode_3 => avail_trust
+				); 
+				
 			rear_obstacle_lidar: device basic_sensors::sensor.rear_obstacle; -- measures distance to obstacles behind the car (lidar technology)
-			frontal_vehicle_c2c_sensor: device basic_sensors::sensor.frontal_vehicle; -- measures distance to and speed of vehicles in front of the car (c2c technology) 
+			
+			frontal_vehicle_c2c_sensor: device basic_sensors::sensor.frontal_vehicle -- measures distance to and speed of vehicles in front of the car (c2c technology) 
+				in modes (
+					nominal => avail_untrust, 
+					fail_mode_1 => avail_untrust, 
+					fail_mode_2 => unavail, 
+					fail_mode_3 => unavail
+				); 
+				
 			rear_vehicle_c2c_sensor: device basic_sensors::sensor.rear_vehicle; -- measures distance to and speed of vehicles behind the car (c2c technology)
 			side_vehicle_c2c_sensor: device basic_sensors::sensor.side_vehicle; -- measures distance to and speed of vehicles on the sides of the car (c2c technology)
 			
@@ -238,8 +276,9 @@ package prediction_subsystem
 			external_message_out_avoidable: port external_message_predictor.avoidable_collision_detected -> external_message_avoidable			{ Communication_Properties::Latency => 8ms .. 12ms; };
 			external_message_out_unavoidable: port external_message_predictor.unavoidable_collision_detected -> external_message_unavoidable	{ Communication_Properties::Latency => 8ms .. 12ms; };
 			external_message_predictor_false_positive: port external_message_predictor.false_positive -> false_positive						{ Communication_Properties::Latency => 8ms .. 12ms; };
-			
+	
 		properties
+			
 			-- cpu allocations
 			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to motion_predictor.data_collector;
 			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to motion_predictor.data_processor;
@@ -258,7 +297,7 @@ package prediction_subsystem
 			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to external_message_predictor.data_collector;
 			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to external_message_predictor.data_processor;
 			
-			-- memory allocations 
+			-- memory allocations
 			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to speed_predictor;
 			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to motion_predictor;
 			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to obstacle_predictor;

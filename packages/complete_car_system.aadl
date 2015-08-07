@@ -11,7 +11,14 @@ public
 		contracts_library;
 	
 	-- no interface information needed
+	-- except external events that trigger various failure modes
 	system complete_car
+		features
+			condition_nominal: in event port;
+			condition_1: in event port;
+			condition_2: in event port;
+			condition_3: in event port;
+			
 	end complete_car;
 	
 	-- compose subsystems
@@ -19,7 +26,8 @@ public
 	
 		subcomponents
 			avoider: system avoidance_subsystem::avoidance_subsystem.impl;
-			predictor: system prediction_subsystem::prediction_subsystem.standard;
+			predictor: system prediction_subsystem::prediction_subsystem.standard -- match modes between the whole system and the prediction subsystem
+				in modes (nominal => nominal, fail_mode_1 => fail_mode_1, fail_mode_2 => fail_mode_2, fail_mode_3 => fail_mode_3);
 			networker: system networking_subsystem::networking_subsystem.standard;
 			responder: system response_subsystem::response_subsystem.standard;
 			user_interaction: system user_interaction_subsystem::user_interaction_subsystem.standard;
@@ -68,7 +76,23 @@ public
 	        auto_braking: port avoider.braking_cmd->vehicle_actuation.speed_command 																{ Communication_Properties::Latency => 8ms .. 12ms; };
 	        auto_steering: port avoider.steering_cmd->vehicle_actuation.direction_command 														{ Communication_Properties::Latency => 8ms .. 12ms; };
 	    	
-		modes
+		modes -- has two independent state machines 
+		
+	        -- sensor failure modes
+			nominal: initial mode;
+			fail_mode_1: mode; 
+			fail_mode_2: mode;
+			fail_mode_3: mode;
+	        
+	        nominal-[condition_1]->fail_mode_1;
+	        nominal-[condition_2]->fail_mode_2;
+	        nominal-[condition_3]->fail_mode_3;
+	        
+	        fail_mode_1-[condition_nominal]->nominal;
+	        fail_mode_2-[condition_nominal]->nominal;
+	        fail_mode_3-[condition_nominal]->nominal;
+		
+			-- collision detection modes
 			no_collision_detected: initial mode;
 	        avoidable_collision: mode;
 	        unavoidable_collision: mode;
