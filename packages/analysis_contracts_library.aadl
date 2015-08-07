@@ -21,12 +21,16 @@ annex contract {**
 			-- TODO create rigorous syntax for probabilistic statements
 	
 	guarantees -- "Functioning controllers: some sensor provides each variable that some controller expects."
-		--	forall m:system : 					-- system/mode
-		--	exists c:system : m.contains(c) ->   -- controller
-		--	forall v:Variable : in (v, c.VarsR) ->  -- variable	
-			exists s:sensor : m.contains(s) && s.VarsS.contains(v) --sensor
+			forall m:system : 					-- system/mode
+				( exists c:system : m.contains(c) ->   -- controller
+					( forall v:Variable : c.VarsR.contains(v) ->  -- variable	
+						( exists s:sensor : --sensor 
+							m.contains(s) && s.VarsS.contains(v)
+						) 
+					)
+				)
 	
-	-- analyzes the trustworthiness of sensors in a given security context
+	-- Analyzes the trustworthiness of sensors in a given security context
 	name TrustworthinessAnalysis 
 	input 
 			sensor, sensor.Placement, sensor.Pow, system.Pow, sensor.Avail, system.Avail, system.AttackM 
@@ -34,25 +38,32 @@ annex contract {**
 			sensor.Trust
 	assumes --"Component failure dependence – some components are likely to fail together."
 			-- sensor version
-			exists s1: sensor, s2: sensor : P(!s1.Avail || s2.Avail) <= P(!s1.Avail) - EpsilonFail
+			exists s1: sensor, s2: sensor : 
+				P(!s1.Avail || s2.Avail) <= P(!s1.Avail) - EpsilonFail
 	assumes 
 			-- controller version
-			exists c1: system, c2: system: P(!c1.Avail || c2.Avail) <= P(!c1.Avail) - EpsilonFail
+			exists c1: system, c2: system: 
+				P(!c1.Avail || c2.Avail) <= P(!c1.Avail) - EpsilonFail
 	guarantees -- "Correct trustworthiness assignment – a sensor is not trustworthy if and only if it is vulnerable for the considered attacker model."
-			forall m: system, s: sensor : m.contains(s) && !s.Trust -> m.AttackM.IsVuln(s)
+			forall m: system, s: sensor : 
+				m.contains(s) && !s.Trust -> m.AttackM.IsVuln(s)
 			
-	-- verifies if the control meets the safety requirements
+	-- Verifies if the control meets the safety requirements
 	name ControlSafetyAnalysis
 	input 
 			sensor, sensor.VarS, system, system.VarR
 	output
 			system.CtrlSafe
 	assumes -- "Minimal sensor trust – for each untrusted sensor there is at least one different trusted sensor."
-			-- forall m: system, c: system, v: Variable : m.contains(c) && c.VarsR.contains(v) -> 
-			-- exists fu: fun_sensor_sensor : 
-			-- forall su: sensor : su.Vars.contains(v) && !su.Trust -> 
-			-- exists st: sensor : m.contains(st) && st.Vars.contains(v) && st.Trust && f(st) = su
-			true
+			 forall m: system, c: system, v: Variable : -- mode, controller, and variable
+			 	m.contains(c) && c.VarsR.contains(v) -> 
+					( exists fun: fun_sensor_sensor :  -- matching function between trustworthy and untrustwortyh sensors
+						( forall su: sensor : su.Vars.contains(v) && !su.Trust ->  -- untrustworthy sensor
+							( exists st: sensor :  -- trustworthy sensor
+								m.contains(st) && st.Vars.contains(v) && st.Trust && fun(st) = su -- matching
+							)
+						)
+					)
 			
 			-- TODO: create rigorous syntax for function quantification. 
 **};
