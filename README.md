@@ -10,7 +10,7 @@ The main system model is in complete_car_system.aadl. This system consists of si
 * Collision response
 * Networking
 * User interaction
-* Physical
+* Vehicle actuation
 
 You can read a paper where this model was used at XYZ 
 

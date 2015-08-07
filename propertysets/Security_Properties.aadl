@@ -1,0 +1,16 @@
+property set Security_Properties is
+with basic_devices;
+
+	-- whether the sensor's data is trustworthy
+	Trustworthiness: aadlboolean applies to (sensor);
+	
+	-- where a sensor is placed: on the car's interior or exterior
+	Sensor_Placement_Type: type enumeration (interior, exterior);
+	
+	-- a property for sensor placement
+	Placement: Security_Properties::Sensor_Placement_Type applies to (sensor);
+	
+	-- attack model: what kind of sensors can an attack compromise
+	AttackM: Security_Properties::Sensor_Placement_Type applies to (system); 
+
+end Security_Properties;

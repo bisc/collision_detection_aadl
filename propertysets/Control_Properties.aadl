@@ -1,0 +1,11 @@
+property set Control_Properties is
+with Sensor_Properties;
+
+	
+	-- variables required by a controller
+	VarsR: list of Sensor_Properties::Variable applies to (system);   
+	
+	-- whether the control is safe
+	CtrlSafe: aadlreal applies to (sensor);
+
+end Control_Properties;
