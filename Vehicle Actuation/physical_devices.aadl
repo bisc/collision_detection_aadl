@@ -4,6 +4,7 @@ package physical_devices
 	public
 	with basic_computing;
 	
+	-- an electronic braking device attached to a bus
 	device brakes
 		features
 			engage: in event port;

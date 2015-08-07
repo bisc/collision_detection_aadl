@@ -78,7 +78,8 @@ package vehicle_actuation
 	
 	system implementation vehicle.standard
 		subcomponents
-			brakes: device physical_devices::brakes.vehicle;
+			front_brakes: device physical_devices::brakes.vehicle;
+			rear_brakes: device physical_devices::brakes.vehicle;
 			accelerator: device physical_devices::accelerator.vehicle;
 			driver_seatbelt: device physical_devices::seatbelt_tighener.driver;
 			passenger_seatbelt: device physical_devices::seatbelt_tighener.passenger;
@@ -104,10 +105,12 @@ package vehicle_actuation
 			event_distribution4: port direction_command -> direction_controller.command_data					{ Communication_Properties::Latency => 8ms .. 12ms; };
 			
 			--in speed, engage is acceleration, disengage is deceleration
-			speed_engage1: port speed_controller.engage -> brakes.disengage										{ Communication_Properties::Latency => 8ms .. 12ms; };
-			speed_engage2: port speed_controller.engage -> accelerator.engage									{ Communication_Properties::Latency => 8ms .. 12ms; };
-			speed_disengage1: port speed_controller.disengage -> brakes.engage									{ Communication_Properties::Latency => 8ms .. 12ms; };
-			speed_disengage2: port speed_controller.disengage -> accelerator.disengage							{ Communication_Properties::Latency => 8ms .. 12ms; };
+			speed_engage1: port speed_controller.engage -> front_brakes.disengage								{ Communication_Properties::Latency => 8ms .. 12ms; };
+			speed_engage2: port speed_controller.engage -> rear_brakes.disengage								{ Communication_Properties::Latency => 8ms .. 12ms; };
+			speed_engage3: port speed_controller.engage -> accelerator.engage									{ Communication_Properties::Latency => 8ms .. 12ms; };
+			speed_disengage1: port speed_controller.disengage -> front_brakes.engage									{ Communication_Properties::Latency => 8ms .. 12ms; };
+			speed_disengage2: port speed_controller.disengage -> rear_brakes.engage									{ Communication_Properties::Latency => 8ms .. 12ms; };
+			speed_disengage3: port speed_controller.disengage -> accelerator.disengage							{ Communication_Properties::Latency => 8ms .. 12ms; };
 			
 			position_engage1: port position_controller.engage -> driver_seatbelt.engage							{ Communication_Properties::Latency => 8ms .. 12ms; };
 			position_engage2: port position_controller.engage -> passenger_seatbelt.engage						{ Communication_Properties::Latency => 8ms .. 12ms; };
