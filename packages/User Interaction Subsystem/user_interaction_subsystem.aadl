@@ -5,6 +5,7 @@ package user_interaction_subsystem
 	public
 	with basic_computing;
 	with basic_devices;
+	with basic_sensors;
 	
 	thread play_audio
 		features
@@ -92,7 +93,7 @@ package user_interaction_subsystem
 		subcomponents
 			microphone: device basic_devices::microphone.in_vehicle;
 			speaker: device basic_devices::speaker.in_vehicle;
-			system_spoken_to: device basic_devices::sensor.system_spoken_to;
+			system_spoken_to: device basic_sensors::sensor.system_spoken_to;
 		
 			speaker_controller: process speaker_controller.standard;
 			microphone_controller: process microphone_controller.standard;

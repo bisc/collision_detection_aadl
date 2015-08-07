@@ -4,7 +4,7 @@
 package prediction_subsystem
 	public
 	with basic_computing;
-	with basic_devices;
+	with basic_sensors;
 	with vehicle_actuation;
 	
 	-- Each thread encodes a real-time task
@@ -141,29 +141,29 @@ package prediction_subsystem
 		subcomponents
 		
 			-- MOVEMENT SENSORS -- 
-			gps_sensor: device basic_devices::sensor.position; -- determines whether a car is moving
-			magnetic_speedometer: device basic_devices::sensor.speed; -- measures car's current velocity (a classic electromagnetic speedometer)
+			gps_sensor: device basic_sensors::sensor.position; -- determines whether a car is moving
+			magnetic_speedometer: device basic_sensors::sensor.speed; -- measures car's current velocity (a classic electromagnetic speedometer)
 			
 			-- OBSTACLE SENSORS -- 
-			frontal_obstacle_lidar: device basic_devices::sensor.frontal_obstacle; -- measures distance to obstacles in front of the car (lidar technology) 
-			rear_obstacle_lidar: device basic_devices::sensor.rear_obstacle; -- measures distance to obstacles behind the car (lidar technology)
-			frontal_vehicle_c2c_sensor: device basic_devices::sensor.frontal_vehicle; -- measures distance to and speed of vehicles in front of the car (c2c technology) 
-			rear_vehicle_c2c_sensor: device basic_devices::sensor.rear_vehicle; -- measures distance to and speed of vehicles behind the car (c2c technology)
-			side_vehicle_c2c_sensor: device basic_devices::sensor.side_vehicle; -- measures distance to and speed of vehicles on the sides of the car (c2c technology)
+			frontal_obstacle_lidar: device basic_sensors::sensor.frontal_obstacle; -- measures distance to obstacles in front of the car (lidar technology) 
+			rear_obstacle_lidar: device basic_sensors::sensor.rear_obstacle; -- measures distance to obstacles behind the car (lidar technology)
+			frontal_vehicle_c2c_sensor: device basic_sensors::sensor.frontal_vehicle; -- measures distance to and speed of vehicles in front of the car (c2c technology) 
+			rear_vehicle_c2c_sensor: device basic_sensors::sensor.rear_vehicle; -- measures distance to and speed of vehicles behind the car (c2c technology)
+			side_vehicle_c2c_sensor: device basic_sensors::sensor.side_vehicle; -- measures distance to and speed of vehicles on the sides of the car (c2c technology)
 			
 			-- MAINTENANCE SENSORS -- 
-			brake_depth_sensor: device basic_devices::sensor.brake_depth; -- determines whether the brake pads are worn beyond an alert threshold
-			tire_pressure_sensor: device basic_devices::sensor.tire_pressure; -- measures the current tire pressure 
-			tire_tread_sensor: device basic_devices::sensor.tire_tread; -- determines whether the tire thread is worn beyond an alert threshold
+			brake_depth_sensor: device basic_sensors::sensor.brake_depth; -- determines whether the brake pads are worn beyond an alert threshold
+			tire_pressure_sensor: device basic_sensors::sensor.tire_pressure; -- measures the current tire pressure 
+			tire_tread_sensor: device basic_sensors::sensor.tire_tread; -- determines whether the tire thread is worn beyond an alert threshold
 			
 			-- EXTERNAL CONDITIONS SENSORS -- 
-			wheel_slippage_sensor: device basic_devices::sensor.wheel_slippage; -- measures the current degree of wheel slippage
-			road_conditions_sensor: device basic_devices::sensor.road_conditions; -- measures physical parameters of the road (grade, curvature, moisture, ...) 
-			visibility_sensor: device basic_devices::sensor.visibility; -- estimates the visibility distance given current atmospheric conditions
+			wheel_slippage_sensor: device basic_sensors::sensor.wheel_slippage; -- measures the current degree of wheel slippage
+			road_conditions_sensor: device basic_sensors::sensor.road_conditions; -- measures physical parameters of the road (grade, curvature, moisture, ...) 
+			visibility_sensor: device basic_sensors::sensor.visibility; -- estimates the visibility distance given current atmospheric conditions
 			
 			-- DRIVER SENSORS -- 
-			driver_responsiveness_sensor: device basic_devices::sensor.driver_responsive; -- approximates the current reaction time of the driver 
-			driver_impairment_sensor: device basic_devices::sensor.driver_impaired; -- determines whether a driver can operate the car or is impaired (unconscious, distracted, injured, ...) 
+			driver_responsiveness_sensor: device basic_sensors::sensor.driver_responsive; -- approximates the current reaction time of the driver 
+			driver_impairment_sensor: device basic_sensors::sensor.driver_impaired; -- determines whether a driver can operate the car or is impaired (unconscious, distracted, injured, ...) 
 			
 			-- PREDICTORS -- 
 			motion_predictor: process predictor.standard; -- predicts the car's trajectory

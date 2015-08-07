@@ -1,71 +1,8 @@
--- This package contains types of autonomous vehicle devices related to sensing, networking, and user interaction.
+-- This package contains types of autonomous vehicle devices related to networking and user interaction.
 
 package basic_devices
 	public
-	with Timing_Properties;
-	with Communication_Properties;
 	with basic_computing;
-	
-	-- A generic sensor connected to a bus
-	device sensor
-		features
-			sensor_data:out data port;
-			ba:requires bus access basic_computing::basic_bus.standard;
-		properties
-			Timing_Properties::Period => 50ms;
---			Timing_Properties::Activate_Deadline; 
-	end sensor;
-	
-	-- Concrete sensor implementation
-	device implementation sensor.position
-	end sensor.position;
-
-	device implementation sensor.speed
-	end sensor.speed;
-		
-	device implementation sensor.frontal_obstacle
-	end sensor.frontal_obstacle;
-	
-	device implementation sensor.rear_obstacle
-	end sensor.rear_obstacle;
-	
-	device implementation sensor.frontal_vehicle
-	end sensor.frontal_vehicle;
-	
-	device implementation sensor.rear_vehicle
-	end sensor.rear_vehicle;
-	
-	device implementation sensor.side_vehicle
-	end sensor.side_vehicle;
-	
-	device implementation sensor.tire_pressure
-	end sensor.tire_pressure;
-	
-	device implementation sensor.tire_tread
-	end sensor.tire_tread;
-	
-	device implementation sensor.wheel_slippage
-	end sensor.wheel_slippage;
-	
-	device implementation sensor.brake_depth
-	end sensor.brake_depth;
-	
-	device implementation sensor.road_conditions
-	end sensor.road_conditions;
-	
-	device implementation sensor.visibility
-	end sensor.visibility;
-	
-	device implementation sensor.driver_responsive
-	end sensor.driver_responsive;
-	
-	device implementation sensor.driver_impaired
-	end sensor.driver_impaired;
-	
-	device implementation sensor.system_spoken_to
-	end sensor.system_spoken_to;
-	
-	------------------------------------------------------------------------------------------
 	
 	-- Radio command receiver device
 	device receiver
