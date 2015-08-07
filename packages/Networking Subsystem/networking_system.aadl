@@ -72,13 +72,13 @@ package networking_subsystem
 	
 	------------------------------------------------------------------------------------------
 	
-	process control
+	process message_handling
 		features
 			received_message: out data port;
 			message_to_send: in data port;
-	end control;
+	end message_handling;
 	
-	process implementation control.sender
+	process implementation message_handling.sender
 		subcomponents
 			shortwave_sender: thread send_shortwave_broadcast.standard;
 			cellular_sender: thread send_cellular_broadcast.standard;
@@ -98,7 +98,7 @@ package networking_subsystem
 			message_sent-[cellular_sender.message]->wait_for_message_to_send;
 	end control.sender;
 	
-	process implementation control.receiver
+	process implementation message_handling.receiver
 		subcomponents
 			shortwave_receiver: thread receive_shortwave_broadcast.standard;
 			cellular_receiver: thread receive_cellular_broadcast.standard;
@@ -118,6 +118,7 @@ package networking_subsystem
 	
 	------------------------------------------------------------------------------------------
 	
+	-- The full networking subsystem
 	system networking_subsystem
 		features
 			received_message: out data port;
@@ -131,8 +132,8 @@ package networking_subsystem
 			shortwave_sender: device basic_devices::broadcaster.shortwave;
 			cellular_sender: device basic_devices::broadcaster.cellular;
 			
-			receiver: process control.receiver;
-			sender: process control.sender;
+			receiver: process message_handling.receiver;
+			sender: process message_handling.sender;
 			
 			bus_driver: device basic_devices::bus_driver.standard;
 			event_distributor: device basic_devices::event_distributor.standard;

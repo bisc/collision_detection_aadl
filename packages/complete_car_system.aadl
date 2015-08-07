@@ -1,3 +1,5 @@
+-- The full system of the car, composing all subsystem.  
+-- This is the main AADL file. 
 package complete_car_system
 public
 	with prediction_subsystem, 
@@ -8,10 +10,11 @@ public
 		vehicle_actuation,
 		contracts_library;
 	
-
+	-- no interface information needed
 	system complete_car
 	end complete_car;
 	
+	-- compose subsystems
 	system implementation complete_car.impl
 	
 		subcomponents
@@ -20,7 +23,7 @@ public
 			networker: system networking_subsystem::networking_subsystem.standard;
 			responder: system response_subsystem::response_subsystem.standard;
 			user_interaction: system user_interaction_subsystem::user_interaction_subsystem.standard;
-			vehicle: system vehicle_actuation::vehicle.standard;
+			vehicle_actuation: system vehicle_actuation::vehicle_actuation.standard;
 			
 		connections
 			external_message: port networker.received_message -> predictor.external_message 											{ Communication_Properties::Latency => 8ms .. 12ms; };
@@ -61,9 +64,9 @@ public
 	 
 	        send_message_to_external: port responder.emergency_message -> networker.message_to_send 									{ Communication_Properties::Latency => 8ms .. 12ms; };
 	        send_message_to_driver: port responder.driver_alert_message -> user_interaction.message_to_send_to_user 					{ Communication_Properties::Latency => 8ms .. 12ms; };
-	        
-	        auto_braking: port avoider.braking_cmd->vehicle.speed_command 																{ Communication_Properties::Latency => 8ms .. 12ms; };
-	        auto_steering: port avoider.steering_cmd->vehicle.direction_command 														{ Communication_Properties::Latency => 8ms .. 12ms; };
+	         
+	        auto_braking: port avoider.braking_cmd->vehicle_actuation.speed_command 																{ Communication_Properties::Latency => 8ms .. 12ms; };
+	        auto_steering: port avoider.steering_cmd->vehicle_actuation.direction_command 														{ Communication_Properties::Latency => 8ms .. 12ms; };
 	    	
 		modes
 			no_collision_detected: initial mode;
@@ -88,10 +91,12 @@ public
 	        no_collision_detected-[predictor.driver_detector_avoidable]->avoidable_collision;
 	        no_collision_detected-[predictor.external_message_avoidable]->avoidable_collision;
 	        
+	    -- include relevant analyses
 	    annex contract {** 
 			use contracts_library::FMEA, 
 			contracts_library::TrustworthinessAnalysis, 
 			contracts_library::ControlSafetyAnalysis
 		**};	
+		
 	end complete_car.impl;
 end complete_car_system;

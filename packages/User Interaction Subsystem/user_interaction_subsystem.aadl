@@ -81,6 +81,7 @@ package user_interaction_subsystem
 	
 	------------------------------------------------------------------------------------------
 	
+	-- The full subsystem for user interaction
 	system user_interaction_subsystem
 		features
 			message_received_from_user: out event data port;

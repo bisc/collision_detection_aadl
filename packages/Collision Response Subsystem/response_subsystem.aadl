@@ -8,7 +8,7 @@ package response_subsystem
 	with vehicle_actuation;
 	with prediction_subsystem;
 		
-	--Read event/data from predictor to determine if collision is avoidable/unavoidable
+	--This thread reads event/data from predictor to determine if collision is avoidable/unavoidable
 	--If unavoidable, send emergency message to emergency responders and send alert to driver of imminent crash
 	thread event_handler
 		features  
@@ -27,7 +27,7 @@ package response_subsystem
 	thread implementation event_handler.singleton
 	end event_handler.singleton;
 	
-	--Process data concerning crash severity/prepare data for outgoing emergency message
+	-- Process data concerning crash severity/prepare data for outgoing emergency message
 	thread data_handler
 		features
 			read_vehicle_sensors: in data port;
@@ -38,6 +38,7 @@ package response_subsystem
 	thread implementation data_handler.singleton
 	end data_handler.singleton;
 	
+	-- a control thread to generate actuation given sensing
 	thread control_laws
 		features
 			--predictor command, related to unavoidable/avoidable message from prediction system
@@ -104,6 +105,8 @@ package response_subsystem
 			DC4: port response_control.send_emergency_message -> network_control_event						{ Communication_Properties::Latency => 8ms .. 12ms; };
 		end collision_response_handler.singleton;
 		
+		
+	-- The whole response subsystem type
 	system response_subsystem
 		features
 			external_message_unavoidable: in event data port;

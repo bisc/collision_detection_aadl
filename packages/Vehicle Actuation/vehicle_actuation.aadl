@@ -37,14 +37,15 @@ package vehicle_actuation
 	
 	------------------------------------------------------------------------------------------
 	
-	process control
+	-- This process outputs actuation commands
+	process actuate
 		features
 			command_data: in event data port;
 			engage: out event data port;
 			disengage: out event data port;
-	end control;
+	end actuate;
 	
-	process implementation control.standard
+	process implementation actuate.standard
 		subcomponents
 			command_received: thread check_for_command.standard;
 			command_processor: thread process_command.standard;
@@ -68,15 +69,16 @@ package vehicle_actuation
 	
 	------------------------------------------------------------------------------------------
 	
-	system vehicle
+	-- The full actuation subsystem
+	system vehicle_actuation
 		features
 			speed_command: in event data port;
 			position_command: in event data port;
 			airbag_command: in event data port;
 			direction_command: in event data port;
-	end vehicle;
+	end vehicle_actuation;
 	
-	system implementation vehicle.standard
+	system implementation vehicle_actuation.standard
 		subcomponents
 			front_brakes: device physical_devices::brakes.vehicle;
 			rear_brakes: device physical_devices::brakes.vehicle;
@@ -91,63 +93,63 @@ package vehicle_actuation
 			driver_nudger: device physical_devices::nudger.driver;
 			passenger_nudger: device physical_devices::nudger.passenger;
 			wheel_turner: device physical_devices::automatic_wheel_turner.vehicle;
-			speed_controller: process control.standard;
-			position_controller: process control.standard;
-			airbag_controller: process control.standard;
-			direction_controller: process control.standard;
+			speed_actuator: process actuate.standard;
+			position_actuator: process actuate.standard;
+			airbag_actuator: process actuate.standard;
+			direction_actuator: process actuate.standard;
 			vehicle_processor: processor basic_computing::real_time.one_ghz;
 			vehicle_memory: memory basic_computing::ram.standard;
 			vehicle_bus: bus basic_computing::basic_bus.standard;
 		connections
-			event_distribution1: port speed_command -> speed_controller.command_data							{ Communication_Properties::Latency => 8ms .. 12ms; };
-			event_distribution2: port position_command -> position_controller.command_data						{ Communication_Properties::Latency => 8ms .. 12ms; };
-			event_distribution3: port airbag_command -> airbag_controller.command_data							{ Communication_Properties::Latency => 8ms .. 12ms; };
-			event_distribution4: port direction_command -> direction_controller.command_data					{ Communication_Properties::Latency => 8ms .. 12ms; };
+			event_distribution1: port speed_command -> speed_actuator.command_data							{ Communication_Properties::Latency => 8ms .. 12ms; };
+			event_distribution2: port position_command -> position_actuator.command_data						{ Communication_Properties::Latency => 8ms .. 12ms; };
+			event_distribution3: port airbag_command -> airbag_actuator.command_data							{ Communication_Properties::Latency => 8ms .. 12ms; };
+			event_distribution4: port direction_command -> direction_actuator.command_data					{ Communication_Properties::Latency => 8ms .. 12ms; };
 			
 			--in speed, engage is acceleration, disengage is deceleration
-			speed_engage1: port speed_controller.engage -> front_brakes.disengage								{ Communication_Properties::Latency => 8ms .. 12ms; };
-			speed_engage2: port speed_controller.engage -> rear_brakes.disengage								{ Communication_Properties::Latency => 8ms .. 12ms; };
-			speed_engage3: port speed_controller.engage -> accelerator.engage									{ Communication_Properties::Latency => 8ms .. 12ms; };
-			speed_disengage1: port speed_controller.disengage -> front_brakes.engage									{ Communication_Properties::Latency => 8ms .. 12ms; };
-			speed_disengage2: port speed_controller.disengage -> rear_brakes.engage									{ Communication_Properties::Latency => 8ms .. 12ms; };
-			speed_disengage3: port speed_controller.disengage -> accelerator.disengage							{ Communication_Properties::Latency => 8ms .. 12ms; };
+			speed_engage1: port speed_actuator.engage -> front_brakes.disengage								{ Communication_Properties::Latency => 8ms .. 12ms; };
+			speed_engage2: port speed_actuator.engage -> rear_brakes.disengage								{ Communication_Properties::Latency => 8ms .. 12ms; };
+			speed_engage3: port speed_actuator.engage -> accelerator.engage									{ Communication_Properties::Latency => 8ms .. 12ms; };
+			speed_disengage1: port speed_actuator.disengage -> front_brakes.engage									{ Communication_Properties::Latency => 8ms .. 12ms; };
+			speed_disengage2: port speed_actuator.disengage -> rear_brakes.engage									{ Communication_Properties::Latency => 8ms .. 12ms; };
+			speed_disengage3: port speed_actuator.disengage -> accelerator.disengage							{ Communication_Properties::Latency => 8ms .. 12ms; };
 			
-			position_engage1: port position_controller.engage -> driver_seatbelt.engage							{ Communication_Properties::Latency => 8ms .. 12ms; };
-			position_engage2: port position_controller.engage -> passenger_seatbelt.engage						{ Communication_Properties::Latency => 8ms .. 12ms; };
-			position_engage3: port position_controller.engage -> driver_seat.engage								{ Communication_Properties::Latency => 8ms .. 12ms; };
-			position_engage4: port position_controller.engage -> passenger_seat.engage							{ Communication_Properties::Latency => 8ms .. 12ms; };
-			position_engage5: port position_controller.engage -> driver_nudger.engage							{ Communication_Properties::Latency => 8ms .. 12ms; };
-			position_engage6: port position_controller.engage -> passenger_nudger.engage						{ Communication_Properties::Latency => 8ms .. 12ms; };
-			position_engage7: port position_controller.engage -> driver_headrest.engage							{ Communication_Properties::Latency => 8ms .. 12ms; };
-			position_engage8: port position_controller.engage -> passenger_headrest.engage						{ Communication_Properties::Latency => 8ms .. 12ms; };
-			position_disengage1: port position_controller.disengage -> driver_seatbelt.disengage				{ Communication_Properties::Latency => 8ms .. 12ms; };
-			position_disengage2: port position_controller.disengage -> passenger_seatbelt.disengage				{ Communication_Properties::Latency => 8ms .. 12ms; };
-			position_disengage3: port position_controller.disengage -> driver_seat.disengage					{ Communication_Properties::Latency => 8ms .. 12ms; };
-			position_disengage4: port position_controller.disengage -> passenger_seat.disengage					{ Communication_Properties::Latency => 8ms .. 12ms; };
-			position_disengage5: port position_controller.disengage -> driver_nudger.disengage					{ Communication_Properties::Latency => 8ms .. 12ms; };
-			position_disengage6: port position_controller.disengage -> passenger_nudger.disengage				{ Communication_Properties::Latency => 8ms .. 12ms; };
-			position_disengage7: port position_controller.disengage -> driver_headrest.disengage				{ Communication_Properties::Latency => 8ms .. 12ms; };
-			position_disengage8: port position_controller.disengage -> passenger_headrest.disengage				{ Communication_Properties::Latency => 8ms .. 12ms; };
+			position_engage1: port position_actuator.engage -> driver_seatbelt.engage							{ Communication_Properties::Latency => 8ms .. 12ms; };
+			position_engage2: port position_actuator.engage -> passenger_seatbelt.engage						{ Communication_Properties::Latency => 8ms .. 12ms; };
+			position_engage3: port position_actuator.engage -> driver_seat.engage								{ Communication_Properties::Latency => 8ms .. 12ms; };
+			position_engage4: port position_actuator.engage -> passenger_seat.engage							{ Communication_Properties::Latency => 8ms .. 12ms; };
+			position_engage5: port position_actuator.engage -> driver_nudger.engage							{ Communication_Properties::Latency => 8ms .. 12ms; };
+			position_engage6: port position_actuator.engage -> passenger_nudger.engage						{ Communication_Properties::Latency => 8ms .. 12ms; };
+			position_engage7: port position_actuator.engage -> driver_headrest.engage							{ Communication_Properties::Latency => 8ms .. 12ms; };
+			position_engage8: port position_actuator.engage -> passenger_headrest.engage						{ Communication_Properties::Latency => 8ms .. 12ms; };
+			position_disengage1: port position_actuator.disengage -> driver_seatbelt.disengage				{ Communication_Properties::Latency => 8ms .. 12ms; };
+			position_disengage2: port position_actuator.disengage -> passenger_seatbelt.disengage				{ Communication_Properties::Latency => 8ms .. 12ms; };
+			position_disengage3: port position_actuator.disengage -> driver_seat.disengage					{ Communication_Properties::Latency => 8ms .. 12ms; };
+			position_disengage4: port position_actuator.disengage -> passenger_seat.disengage					{ Communication_Properties::Latency => 8ms .. 12ms; };
+			position_disengage5: port position_actuator.disengage -> driver_nudger.disengage					{ Communication_Properties::Latency => 8ms .. 12ms; };
+			position_disengage6: port position_actuator.disengage -> passenger_nudger.disengage				{ Communication_Properties::Latency => 8ms .. 12ms; };
+			position_disengage7: port position_actuator.disengage -> driver_headrest.disengage				{ Communication_Properties::Latency => 8ms .. 12ms; };
+			position_disengage8: port position_actuator.disengage -> passenger_headrest.disengage				{ Communication_Properties::Latency => 8ms .. 12ms; };
 			
-			airbag_engage: port airbag_controller.engage -> airbag.engage										{ Communication_Properties::Latency => 8ms .. 12ms; };
-			airbag_disengage: port airbag_controller.disengage -> airbag.disengage								{ Communication_Properties::Latency => 8ms .. 12ms; };
+			airbag_engage: port airbag_actuator.engage -> airbag.engage										{ Communication_Properties::Latency => 8ms .. 12ms; };
+			airbag_disengage: port airbag_actuator.disengage -> airbag.disengage								{ Communication_Properties::Latency => 8ms .. 12ms; };
 			
-			direction_engage: port direction_controller.engage -> wheel_turner.engage							{ Communication_Properties::Latency => 8ms .. 12ms; };
-			direction_disengage: port direction_controller.disengage -> wheel_turner.disengage					{ Communication_Properties::Latency => 8ms .. 12ms; };
+			direction_engage: port direction_actuator.engage -> wheel_turner.engage							{ Communication_Properties::Latency => 8ms .. 12ms; };
+			direction_disengage: port direction_actuator.disengage -> wheel_turner.disengage					{ Communication_Properties::Latency => 8ms .. 12ms; };
 		properties
-			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to speed_controller.command_received;
-			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to speed_controller.command_processor;
-			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to position_controller.command_received;
-			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to position_controller.command_processor;
-			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to airbag_controller.command_received;
-			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to airbag_controller.command_processor;
-			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to direction_controller.command_received;
-			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to direction_controller.command_processor;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to speed_actuator.command_received;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to speed_actuator.command_processor;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to position_actuator.command_received;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to position_actuator.command_processor;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to airbag_actuator.command_received;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to airbag_actuator.command_processor;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to direction_actuator.command_received;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to direction_actuator.command_processor;
 			
-			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to speed_controller;
-			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to position_controller;
-			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to airbag_controller;
-			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to direction_controller;			
-	end vehicle.standard;
+			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to speed_actuator;
+			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to position_actuator;
+			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to airbag_actuator;
+			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to direction_actuator;			
+	end vehicle_actuation.standard;
 	
 end vehicle_actuation;

@@ -4,6 +4,7 @@ package basic_computing
 	public
 	with Communication_Properties;
 	
+	-- a real-time CPU 
 	processor real_time
 		features
 			BA1:requires bus access basic_bus.standard;
@@ -12,6 +13,7 @@ package basic_computing
 	processor implementation real_time.one_ghz
 	end real_time.one_ghz;
 	
+	-- a general-purpose RAM chip
 	memory ram
 		features
 			ba:requires bus access basic_bus.standard;
@@ -20,6 +22,7 @@ package basic_computing
 	memory implementation ram.standard
 	end ram.standard;
 	
+	-- a communication bus (e.g., CAN) 
 	bus basic_bus
 		properties
 			Communication_Properties::Transmission_Time => [Fixed => 1ns..2ns; PerByte => 5ns..10ns;];
@@ -27,4 +30,5 @@ package basic_computing
 	
 	bus implementation basic_bus.standard
 	end basic_bus.standard;
+	
 end basic_computing;

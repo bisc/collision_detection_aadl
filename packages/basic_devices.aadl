@@ -67,13 +67,13 @@ package basic_devices
 	
 	------------------------------------------------------------------------------------------
 	
+	-- Radio command receiver device
 	device receiver
 		features
 			received_broadcast:out event data port;
 			ba:requires bus access basic_computing::basic_bus.standard;
 	end receiver;
 	
-	--Receiver Implementations
 	device implementation receiver.cellular
 	end receiver.cellular;
 	
@@ -82,13 +82,13 @@ package basic_devices
 	
 	------------------------------------------------------------------------------------------
 	
+	-- Radio command broadcaster device
 	device broadcaster
 		features
 			broadcast:in event data port;
 			ba:requires bus access basic_computing::basic_bus.standard;
 	end broadcaster;
 	
-	--Broadcaster Implementations
 	device implementation broadcaster.cellular
 	end broadcaster.cellular;
 	
@@ -97,6 +97,7 @@ package basic_devices
 	
 	------------------------------------------------------------------------------------------
 	
+	-- A microphone with voice recognition for driver voice interaction
 	device microphone
 		features
 			spoken_command:out event data port;
@@ -109,6 +110,7 @@ package basic_devices
 	
 	------------------------------------------------------------------------------------------
 	
+	-- A speaker device to notify driver 
 	device speaker
 		features
 			audio:in data port;
@@ -121,23 +123,23 @@ package basic_devices
 	
 	------------------------------------------------------------------------------------------
 	
+	-- An event distributing component
 	device event_distributor
 		features
 			event_data: out event data port;
 			ba: requires bus access basic_computing::basic_bus.standard;
 	end event_distributor;
 	
-	--Event Distributor Implementations
 	device implementation event_distributor.standard
 	end event_distributor.standard;
-	
+
+	-- A bus driver device	
 	device bus_driver
 		features
 			event_data: in event data port;
 			ba: requires bus access basic_computing::basic_bus.standard;
 	end bus_driver;
 	
-	--Bus Driver Implementations
 	device implementation bus_driver.standard
 	end bus_driver.standard;
 		

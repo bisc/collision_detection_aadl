@@ -8,6 +8,7 @@ package avoidance_subsystem
 	with basic_devices;
 	with basic_computing;
 	
+	-- Handles data coming from the prediction system
 	thread data_handler
 		features
 			-- Req: Only sensor data relevant to a potential collision is input.
@@ -41,6 +42,7 @@ package avoidance_subsystem
 	thread implementation data_handler.external
 	end data_handler.external;
 	
+	-- A task of computing actuation given sensor inputs 
 	thread control_laws
 		features
 			predictor_cmd: in data port;
@@ -63,8 +65,8 @@ package avoidance_subsystem
 	thread implementation control_laws_unavoidable.singleton
 	end control_laws_unavoidable.singleton;
 	
+	-- A watchdog for periodic liveness checks of other tasks 
 	thread watchdog_thread
-		-- Periodic check of other threads in the same process
 		features
 			-- Checks execution of other threads in the same process
 			thread_monitor: in event port;
@@ -97,8 +99,8 @@ package avoidance_subsystem
 			Thread_Properties::Dispatch_Protocol => Sporadic;
 	end watchdog_thread.impl;
 
-	process watchdog_proc
 	-- Responsible for switching collision_threat_handler processes
+	process watchdog_proc
 		features
 			-- Checks execution of sibling processes
 			proc_monitor: in event port;
@@ -114,7 +116,8 @@ package avoidance_subsystem
 			init-[proc_monitor]->swap;
 			swap-[hot_swap]->init;
 	end watchdog_proc.impl;
-	
+
+	-- a process that combines all car control in the avoidance mode
 	process collision_threat_handler
 		features
 			
@@ -196,10 +199,12 @@ package avoidance_subsystem
 			DC7: port safe_impact_control.send_steering_cmds -> vehicle_control_data								{ Communication_Properties::Latency => 8ms .. 12ms; };
 	end collision_threat_handler.A;
 	
-	-- Hot standby.
+	-- Hot standby
 	process implementation collision_threat_handler.B extends collision_threat_handler.A
 	end collision_threat_handler.B;
 	
+	
+	-- The avoidance subsystem type
 	system avoidance_subsystem
 		features
 			-- Req: sensor data filtered to just that data which pertains to an impending collision
