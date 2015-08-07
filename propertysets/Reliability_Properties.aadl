@@ -7,4 +7,7 @@ with basic_devices;
 	-- maximal acceptable probability of failure for a system 
 	AlphaFail: aadlreal applies to (system); 
 	
+	-- tolerance of independent/dependent sensor failure
+	EpsilonFail: aadlreal applies to (system); 
+	
 end Reliability_Properties;
