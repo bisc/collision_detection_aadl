@@ -1,0 +1,302 @@
+-- The collision avoidance subsystem operates the vehicle in case of avoidable collisions. 
+-- As a whole, it can be seen as a mode of car's controller. 
+
+package avoidance_subsystem
+	public
+	with prediction_subsystem;
+	with vehicle_actuation;
+	with basic_devices;
+	with basic_computing;
+	
+	thread data_handler
+		features
+			-- Req: Only sensor data relevant to a potential collision is input.
+			read_sensor: in event data port;
+			-- Provides: Only sensor data useful to maneuver the vehicle is output.
+			send_proc_data: out data port;
+	end data_handler;
+	
+	
+	thread implementation data_handler.motion
+	end data_handler.motion;
+	
+	thread implementation data_handler.debris
+	end data_handler.debris;
+	
+	thread implementation data_handler.speed
+	end data_handler.speed;
+	
+	thread implementation data_handler.vehicle
+	end data_handler.vehicle;
+	
+	thread implementation data_handler.tire
+	end data_handler.tire;
+	
+	thread implementation data_handler.conditions
+	end data_handler.conditions;
+	
+	thread implementation data_handler.driver
+	end data_handler.driver;
+	
+	thread implementation data_handler.external
+	end data_handler.external;
+	
+	thread control_laws
+		features
+			predictor_cmd: in data port;
+			-- Req: only sensor data useful for maneuvering is input
+			read_proc_data: in data port;
+			-- Provides: Directs course to minimize damage
+			send_steering_cmds: out data port;
+			send_brake_cmds:  out data port;
+	end control_laws;
+	
+	thread control_laws_avoidable extends control_laws
+	end control_laws_avoidable;
+	
+	thread implementation control_laws_avoidable.singleton
+	end control_laws_avoidable.singleton;
+	
+	thread control_laws_unavoidable extends control_laws
+	end control_laws_unavoidable;
+	
+	thread implementation control_laws_unavoidable.singleton
+	end control_laws_unavoidable.singleton;
+	
+	thread watchdog_thread
+		-- Periodic check of other threads in the same process
+		features
+			-- Checks execution of other threads in the same process
+			thread_monitor: in event port;
+			-- Reports error code if error detected
+			failure_detected: out event port;
+			-- Reports healthy operational status
+			all_green: out event port;
+		flows
+			f1: flow path thread_monitor -> all_green
+			{Communication_Properties::Latency => 1 ms .. 5ms;};
+			f2: flow path thread_monitor -> failure_detected
+			{Communication_Properties::Latency => 1 ms .. 5ms;};
+	end watchdog_thread;
+	
+	thread implementation watchdog_thread.impl
+		flows
+			f1: flow path thread_monitor -> all_green;
+			f2: flow path thread_monitor -> failure_detected;
+		modes
+			init: initial mode;
+			healthy: mode;
+			fault_detected: mode;
+			init-[thread_monitor]->fault_detected;
+			-- if a fault is detected, the entire process will be restarted externally
+			fault_detected-[failure_detected]->fault_detected;
+			init-[thread_monitor]->healthy;
+			healthy-[all_green]->init;
+
+		properties
+			Thread_Properties::Dispatch_Protocol => Sporadic;
+	end watchdog_thread.impl;
+
+	process watchdog_proc
+	-- Responsible for switching collision_threat_handler processes
+		features
+			-- Checks execution of sibling processes
+			proc_monitor: in event port;
+			-- Resets a proc, and makes the other the active proc
+			hot_swap: out event port;
+	end watchdog_proc;
+	
+	process implementation watchdog_proc.impl
+		modes
+			init: initial mode;
+			swap: mode;
+			-- swaps if one process is faulty and the other is not
+			init-[proc_monitor]->swap;
+			swap-[hot_swap]->init;
+	end watchdog_proc.impl;
+	
+	process collision_threat_handler
+		features
+			
+			-- Req: Only sensor data relevant to a potential collision is input.
+			sensor_data: in data port;
+			vehicle_control_data: out data port;
+			motion_unavoidable_port: in data port;
+			motion_avoidable_port: in data port;
+			debris_unavoidable_port: in data port;
+			debris_avoidable_port: in data port;
+			speed_unavoidable_port: in data port;
+			speed_avoidable_port: in data port;
+			vehicle_unavoidable_port: in data port;
+			vehicle_avoidable_port: in data port;
+			tire_unavoidable_port: in data port;
+			tire_avoidable_port: in data port;
+			conditions_unavoidable_port: in data port;
+			conditions_avoidable_port: in data port;
+			driver_unavoidable_port: in data port;
+			driver_avoidable_port: in data port;
+			external_unavoidable_port: in data port;
+			external_avoidable_port: in data port;
+			
+			self_test_result: out event port;
+			proc_watchdog_cmd_input: in event port;
+			--------------------------------------------------------------------
+			
+			-- Provides: Directs course to minimize damage
+			vehicle_event_output: out event data port;
+	end collision_threat_handler;
+	
+	process implementation collision_threat_handler.A
+		subcomponents
+			motion_data_handler: thread data_handler.motion;
+			debris_data_handler: thread data_handler.debris;
+			speed_data_handler: thread data_handler.speed;
+			vehicle_data_handler: thread data_handler.vehicle;
+			tire_data_handler: thread data_handler.tire;
+			conditions_data_handler: thread data_handler.conditions;
+			driver_data_handler: thread data_handler.driver;
+			external_data_handler: thread data_handler.external;
+			avoid_collision_control: thread control_laws_avoidable.singleton;
+			safe_impact_control: thread control_laws_unavoidable.singleton;
+			watchdog_thread: thread watchdog_thread.impl;
+		connections
+			motion_unavoidable: port motion_unavoidable_port -> motion_data_handler.read_sensor						{ Communication_Properties::Latency => 8ms .. 12ms; };
+			motion_avoidable: port motion_avoidable_port -> motion_data_handler.read_sensor							{ Communication_Properties::Latency => 8ms .. 12ms; };
+			debris_unavoidable: port debris_unavoidable_port -> debris_data_handler.read_sensor						{ Communication_Properties::Latency => 8ms .. 12ms; };
+			debris_avoidable: port debris_avoidable_port -> debris_data_handler.read_sensor							{ Communication_Properties::Latency => 8ms .. 12ms; };
+			speed_unavoidable: port speed_unavoidable_port -> speed_data_handler.read_sensor						{ Communication_Properties::Latency => 8ms .. 12ms; };
+			speed_avoidable: port speed_avoidable_port -> speed_data_handler.read_sensor							{ Communication_Properties::Latency => 8ms .. 12ms; };
+			vehicle_unavoidable: port vehicle_unavoidable_port -> vehicle_data_handler.read_sensor					{ Communication_Properties::Latency => 8ms .. 12ms; };
+			vehicle_avoidable: port vehicle_avoidable_port -> vehicle_data_handler.read_sensor						{ Communication_Properties::Latency => 8ms .. 12ms; };
+			tire_unavoidable: port tire_unavoidable_port -> tire_data_handler.read_sensor							{ Communication_Properties::Latency => 8ms .. 12ms; };
+			tire_avoidable: port tire_avoidable_port -> tire_data_handler.read_sensor								{ Communication_Properties::Latency => 8ms .. 12ms; };
+			conditions_unavoidable: port conditions_unavoidable_port -> conditions_data_handler.read_sensor			{ Communication_Properties::Latency => 8ms .. 12ms; };
+			conditions_avoidable: port conditions_avoidable_port -> conditions_data_handler.read_sensor				{ Communication_Properties::Latency => 8ms .. 12ms; };
+			driver_unavoidable: port driver_unavoidable_port -> driver_data_handler.read_sensor						{ Communication_Properties::Latency => 8ms .. 12ms; };
+			driver_avoidable: port driver_avoidable_port -> driver_data_handler.read_sensor							{ Communication_Properties::Latency => 8ms .. 12ms; };
+			external_unavoidable: port external_unavoidable_port -> external_data_handler.read_sensor				{ Communication_Properties::Latency => 8ms .. 12ms; };
+			external_avoidable: port motion_unavoidable_port -> external_data_handler.read_sensor					{ Communication_Properties::Latency => 8ms .. 12ms; };
+			control_motion_un: port motion_data_handler.send_proc_data -> safe_impact_control.read_proc_data		{ Communication_Properties::Latency => 8ms .. 12ms; };
+			control_motion: port motion_data_handler.send_proc_data -> avoid_collision_control.read_proc_data		{ Communication_Properties::Latency => 8ms .. 12ms; };
+			control_debris_un: port debris_data_handler.send_proc_data -> safe_impact_control.read_proc_data		{ Communication_Properties::Latency => 8ms .. 12ms; };
+			control_debris: port debris_data_handler.send_proc_data -> avoid_collision_control.read_proc_data		{ Communication_Properties::Latency => 8ms .. 12ms; };
+			control_speed_un: port speed_data_handler.send_proc_data -> safe_impact_control.read_proc_data			{ Communication_Properties::Latency => 8ms .. 12ms; };
+			control_speed: port speed_data_handler.send_proc_data -> avoid_collision_control.read_proc_data			{ Communication_Properties::Latency => 8ms .. 12ms; };
+			control_vehicle_un: port vehicle_data_handler.send_proc_data -> safe_impact_control.read_proc_data		{ Communication_Properties::Latency => 8ms .. 12ms; };
+			control_vehicle: port vehicle_data_handler.send_proc_data -> avoid_collision_control.read_proc_data		{ Communication_Properties::Latency => 8ms .. 12ms; };
+			control_tire_un: port tire_data_handler.send_proc_data -> safe_impact_control.read_proc_data			{ Communication_Properties::Latency => 8ms .. 12ms; };
+			control_tire: port tire_data_handler.send_proc_data -> avoid_collision_control.read_proc_data			{ Communication_Properties::Latency => 8ms .. 12ms; };
+			control_driver_un: port driver_data_handler.send_proc_data -> safe_impact_control.read_proc_data		{ Communication_Properties::Latency => 8ms .. 12ms; };
+			control_driver: port driver_data_handler.send_proc_data -> avoid_collision_control.read_proc_data		{ Communication_Properties::Latency => 8ms .. 12ms; };
+			control_external_un: port external_data_handler.send_proc_data -> safe_impact_control.read_proc_data	{ Communication_Properties::Latency => 8ms .. 12ms; };
+			control_external: port external_data_handler.send_proc_data -> avoid_collision_control.read_proc_data	{ Communication_Properties::Latency => 8ms .. 12ms; };
+			DC4: port avoid_collision_control.send_brake_cmds -> vehicle_control_data								{ Communication_Properties::Latency => 8ms .. 12ms; };
+			DC5: port safe_impact_control.send_brake_cmds -> vehicle_control_data									{ Communication_Properties::Latency => 8ms .. 12ms; };
+			DC6: port avoid_collision_control.send_steering_cmds -> vehicle_control_data							{ Communication_Properties::Latency => 8ms .. 12ms; };
+			DC7: port safe_impact_control.send_steering_cmds -> vehicle_control_data								{ Communication_Properties::Latency => 8ms .. 12ms; };
+	end collision_threat_handler.A;
+	
+	-- Hot standby.
+	process implementation collision_threat_handler.B extends collision_threat_handler.A
+	end collision_threat_handler.B;
+	
+	system avoidance_subsystem
+		features
+			-- Req: sensor data filtered to just that data which pertains to an impending collision
+			motion_unavoidable_port: in data port;
+			motion_avoidable_port: in data port;
+			debris_unavoidable_port: in data port;
+			debris_avoidable_port: in data port;
+			speed_unavoidable_port: in data port;
+			speed_avoidable_port: in data port;
+			vehicle_unavoidable_port: in data port;
+			vehicle_avoidable_port: in data port;
+			tire_unavoidable_port: in data port;
+			tire_avoidable_port: in data port;
+			conditions_unavoidable_port: in data port;
+			conditions_avoidable_port: in data port;
+			driver_unavoidable_port: in data port;
+			driver_avoidable_port: in data port;
+			external_unavoidable_port: in data port;
+			external_avoidable_port: in data port;
+			
+			-- Provides: Braking and steering commands computed to minimize injury
+			braking_cmd: out event data port;
+			steering_cmd: out event data port;
+	end avoidance_subsystem;
+	
+	system implementation avoidance_subsystem.impl
+		subcomponents
+			avoidance_process_A: process collision_threat_handler.A;
+			avoidance_process_B: process collision_threat_handler.B;
+			watchdog_process: process watchdog_proc.impl;
+			vehicle_processor: processor basic_computing::real_time.one_ghz;
+			vehicle_memory: memory basic_computing::ram.standard;
+			vehicle_bus: bus basic_computing::basic_bus.standard;
+			bus_driver: device basic_devices::bus_driver.standard;
+			event_distributor: device basic_devices::event_distributor.standard;
+			
+		connections
+			-- self test loop
+			proc_mon1: port avoidance_process_A.self_test_result -> watchdog_process.proc_monitor							{ Communication_Properties::Latency => 8ms .. 12ms; };
+			proc_mon2: port avoidance_process_B.self_test_result -> watchdog_process.proc_monitor							{ Communication_Properties::Latency => 8ms .. 12ms; };
+			proc_cntl1: port watchdog_process.hot_swap -> avoidance_process_A.proc_watchdog_cmd_input						{ Communication_Properties::Latency => 8ms .. 12ms; };
+			proc_cntl2: port watchdog_process.hot_swap -> avoidance_process_B.proc_watchdog_cmd_input						{ Communication_Properties::Latency => 8ms .. 12ms; };
+			-- filtered sensor data
+			motion_unavoidable1: port motion_unavoidable_port -> avoidance_process_A.motion_unavoidable_port				{ Communication_Properties::Latency => 8ms .. 12ms; };
+			motion_avoidable1: port motion_avoidable_port -> avoidance_process_A.motion_avoidable_port						{ Communication_Properties::Latency => 8ms .. 12ms; };
+			debris_unavoidable1: port debris_unavoidable_port -> avoidance_process_A.debris_unavoidable_port				{ Communication_Properties::Latency => 8ms .. 12ms; };
+			debris_avoidable1: port debris_avoidable_port -> avoidance_process_A.debris_avoidable_port						{ Communication_Properties::Latency => 8ms .. 12ms; };
+			speed_unavoidable1: port speed_unavoidable_port -> avoidance_process_A.speed_unavoidable_port					{ Communication_Properties::Latency => 8ms .. 12ms; };
+			speed_avoidable1: port speed_avoidable_port -> avoidance_process_A.speed_avoidable_port							{ Communication_Properties::Latency => 8ms .. 12ms; };
+			vehicle_unavoidable1: port vehicle_unavoidable_port -> avoidance_process_A.vehicle_unavoidable_port				{ Communication_Properties::Latency => 8ms .. 12ms; };
+			vehicle_avoidable1: port vehicle_avoidable_port -> avoidance_process_A.vehicle_avoidable_port					{ Communication_Properties::Latency => 8ms .. 12ms; };
+			tire_unavoidable1: port tire_unavoidable_port -> avoidance_process_A.tire_unavoidable_port						{ Communication_Properties::Latency => 8ms .. 12ms; };
+			tire_avoidable1: port tire_avoidable_port -> avoidance_process_A.tire_avoidable_port							{ Communication_Properties::Latency => 8ms .. 12ms; };
+			conditions_unavoidable1: port conditions_unavoidable_port -> avoidance_process_A.conditions_unavoidable_port	{ Communication_Properties::Latency => 8ms .. 12ms; };
+			conditions_avoidable1: port conditions_avoidable_port -> avoidance_process_A.conditions_avoidable_port			{ Communication_Properties::Latency => 8ms .. 12ms; };
+			driver_unavoidable1: port driver_unavoidable_port -> avoidance_process_A.driver_unavoidable_port				{ Communication_Properties::Latency => 8ms .. 12ms; };
+			driver_avoidable1: port driver_avoidable_port -> avoidance_process_A.driver_avoidable_port						{ Communication_Properties::Latency => 8ms .. 12ms; };
+			external_unavoidable1: port external_unavoidable_port -> avoidance_process_A.external_unavoidable_port			{ Communication_Properties::Latency => 8ms .. 12ms; };
+			external_avoidable1: port motion_unavoidable_port -> avoidance_process_A.external_avoidable_port				{ Communication_Properties::Latency => 8ms .. 12ms; };
+			get_vehicle_feedback1: port event_distributor.event_data -> avoidance_process_A.sensor_data						{ Communication_Properties::Latency => 8ms .. 12ms; };
+			
+			motion_unavoidable2: port motion_unavoidable_port -> avoidance_process_B.motion_unavoidable_port				{ Communication_Properties::Latency => 8ms .. 12ms; };
+			motion_avoidable2: port motion_avoidable_port -> avoidance_process_B.motion_avoidable_port						{ Communication_Properties::Latency => 8ms .. 12ms; };
+			debris_unavoidable2: port debris_unavoidable_port -> avoidance_process_B.debris_unavoidable_port				{ Communication_Properties::Latency => 8ms .. 12ms; };
+			debris_avoidable2: port debris_avoidable_port -> avoidance_process_B.debris_avoidable_port						{ Communication_Properties::Latency => 8ms .. 12ms; };
+			speed_unavoidable2: port speed_unavoidable_port -> avoidance_process_B.speed_unavoidable_port					{ Communication_Properties::Latency => 8ms .. 12ms; };
+			speed_avoidable2: port speed_avoidable_port -> avoidance_process_B.speed_avoidable_port							{ Communication_Properties::Latency => 8ms .. 12ms; };
+			vehicle_unavoidable2: port vehicle_unavoidable_port -> avoidance_process_B.vehicle_unavoidable_port				{ Communication_Properties::Latency => 8ms .. 12ms; };
+			vehicle_avoidable2: port vehicle_avoidable_port -> avoidance_process_B.vehicle_avoidable_port					{ Communication_Properties::Latency => 8ms .. 12ms; };
+			tire_unavoidable2: port tire_unavoidable_port -> avoidance_process_B.tire_unavoidable_port						{ Communication_Properties::Latency => 8ms .. 12ms; };
+			tire_avoidable2: port tire_avoidable_port -> avoidance_process_B.tire_avoidable_port							{ Communication_Properties::Latency => 8ms .. 12ms; };
+			conditions_unavoidable2: port conditions_unavoidable_port -> avoidance_process_B.conditions_unavoidable_port	{ Communication_Properties::Latency => 8ms .. 12ms; };
+			conditions_avoidable2: port conditions_avoidable_port -> avoidance_process_B.conditions_avoidable_port			{ Communication_Properties::Latency => 8ms .. 12ms; };
+			driver_unavoidable2: port driver_unavoidable_port -> avoidance_process_B.driver_unavoidable_port				{ Communication_Properties::Latency => 8ms .. 12ms; };
+			driver_avoidable2: port driver_avoidable_port -> avoidance_process_B.driver_avoidable_port						{ Communication_Properties::Latency => 8ms .. 12ms; };
+			external_unavoidable2: port external_unavoidable_port -> avoidance_process_B.external_unavoidable_port			{ Communication_Properties::Latency => 8ms .. 12ms; };
+			external_avoidable2: port motion_unavoidable_port -> avoidance_process_B.external_avoidable_port				{ Communication_Properties::Latency => 8ms .. 12ms; };
+			get_vehicle_feedback2: port event_distributor.event_data -> avoidance_process_B.sensor_data						{ Communication_Properties::Latency => 8ms .. 12ms; };
+			
+			-- only one set of these can be active at any given time
+			brake_control1: port avoidance_process_A.vehicle_control_data-> braking_cmd										{ Communication_Properties::Latency => 8ms .. 12ms; };
+			steering_control1: port avoidance_process_A.vehicle_control_data-> steering_cmd									{ Communication_Properties::Latency => 8ms .. 12ms; };
+			brake_control2: port avoidance_process_B.vehicle_control_data-> braking_cmd										{ Communication_Properties::Latency => 8ms .. 12ms; };
+			steering_control2: port avoidance_process_B.vehicle_control_data-> steering_cmd									{ Communication_Properties::Latency => 8ms .. 12ms; };
+			
+			event_driver: bus access bus_driver.ba <-> vehicle_bus															{ Communication_Properties::Latency => 8ms .. 12ms; };
+
+				
+		properties
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to avoidance_process_A;
+			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to avoidance_process_A;
+			
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to avoidance_process_B;
+			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to avoidance_process_B;
+			
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to watchdog_process;
+			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to watchdog_process;
+	end avoidance_subsystem.impl;
+	
+end avoidance_subsystem;

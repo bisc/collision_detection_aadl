@@ -1,0 +1,144 @@
+-- This package contains types of autonomous vehicle devices related to sensing, networking, and user interaction.
+
+package basic_devices
+	public
+	with Timing_Properties;
+	with Communication_Properties;
+	with basic_computing;
+	
+	-- A generic sensor connected to a bus
+	device sensor
+		features
+			sensor_data:out data port;
+			ba:requires bus access basic_computing::basic_bus.standard;
+		properties
+			Timing_Properties::Period => 50ms;
+--			Timing_Properties::Activate_Deadline; 
+	end sensor;
+	
+	-- Concrete sensor implementation
+	device implementation sensor.position
+	end sensor.position;
+
+	device implementation sensor.speed
+	end sensor.speed;
+		
+	device implementation sensor.frontal_obstacle
+	end sensor.frontal_obstacle;
+	
+	device implementation sensor.rear_obstacle
+	end sensor.rear_obstacle;
+	
+	device implementation sensor.frontal_vehicle
+	end sensor.frontal_vehicle;
+	
+	device implementation sensor.rear_vehicle
+	end sensor.rear_vehicle;
+	
+	device implementation sensor.side_vehicle
+	end sensor.side_vehicle;
+	
+	device implementation sensor.tire_pressure
+	end sensor.tire_pressure;
+	
+	device implementation sensor.tire_tread
+	end sensor.tire_tread;
+	
+	device implementation sensor.wheel_slippage
+	end sensor.wheel_slippage;
+	
+	device implementation sensor.brake_depth
+	end sensor.brake_depth;
+	
+	device implementation sensor.road_conditions
+	end sensor.road_conditions;
+	
+	device implementation sensor.visibility
+	end sensor.visibility;
+	
+	device implementation sensor.driver_responsive
+	end sensor.driver_responsive;
+	
+	device implementation sensor.driver_impaired
+	end sensor.driver_impaired;
+	
+	device implementation sensor.system_spoken_to
+	end sensor.system_spoken_to;
+	
+	------------------------------------------------------------------------------------------
+	
+	device receiver
+		features
+			received_broadcast:out event data port;
+			ba:requires bus access basic_computing::basic_bus.standard;
+	end receiver;
+	
+	--Receiver Implementations
+	device implementation receiver.cellular
+	end receiver.cellular;
+	
+	device implementation receiver.shortwave
+	end receiver.shortwave;
+	
+	------------------------------------------------------------------------------------------
+	
+	device broadcaster
+		features
+			broadcast:in event data port;
+			ba:requires bus access basic_computing::basic_bus.standard;
+	end broadcaster;
+	
+	--Broadcaster Implementations
+	device implementation broadcaster.cellular
+	end broadcaster.cellular;
+	
+	device implementation broadcaster.shortwave
+	end broadcaster.shortwave;
+	
+	------------------------------------------------------------------------------------------
+	
+	device microphone
+		features
+			spoken_command:out event data port;
+			ba:requires bus access basic_computing::basic_bus.standard;
+	end microphone;
+	
+	--Microphone Implementations
+	device implementation microphone.in_vehicle
+	end microphone.in_vehicle;
+	
+	------------------------------------------------------------------------------------------
+	
+	device speaker
+		features
+			audio:in data port;
+			ba:requires bus access basic_computing::basic_bus.standard;
+	end speaker;
+	
+	--Speaker Implementations
+	device implementation speaker.in_vehicle
+	end speaker.in_vehicle;
+	
+	------------------------------------------------------------------------------------------
+	
+	device event_distributor
+		features
+			event_data: out event data port;
+			ba: requires bus access basic_computing::basic_bus.standard;
+	end event_distributor;
+	
+	--Event Distributor Implementations
+	device implementation event_distributor.standard
+	end event_distributor.standard;
+	
+	device bus_driver
+		features
+			event_data: in event data port;
+			ba: requires bus access basic_computing::basic_bus.standard;
+	end bus_driver;
+	
+	--Bus Driver Implementations
+	device implementation bus_driver.standard
+	end bus_driver.standard;
+		
+end basic_devices;

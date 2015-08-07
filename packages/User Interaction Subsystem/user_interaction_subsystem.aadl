@@ -1,0 +1,120 @@
+-- The user interaction subsystem handles the two-way interaction with the driver. 
+-- It handles infotainment functionality and is almost completely separated from safety-critical systems.
+
+package user_interaction_subsystem
+	public
+	with basic_computing;
+	with basic_devices;
+	
+	thread play_audio
+		features
+			-- the text to be spoken
+			text: in data port;
+			-- the audio to be played on the speaker system
+			audio: out data port;
+		properties
+			Dispatch_Protocol => Sporadic;	
+			Compute_Execution_Time => 1ms .. 1000ms;
+	end play_audio;
+	
+	thread implementation play_audio.standard
+	end play_audio.standard;
+	
+	thread listen_for_audio
+		features
+			-- audio is available for processing
+			audio_available: out event data port;
+		properties
+			Dispatch_Protocol => Periodic;
+			-- this needs to be fairly rapid
+			Compute_Execution_Time => 1ms .. 10ms;
+			Period => 50ms;
+	end listen_for_audio;
+	
+	thread implementation listen_for_audio.standard
+	end listen_for_audio.standard;
+	
+	thread convert_to_text
+		features
+			-- the audio spoken by the driver
+			audio: in data port;
+			-- the textual version of the audio
+			text: out data port;
+		properties
+			Dispatch_Protocol => Sporadic;	
+			Compute_Execution_Time => 1ms .. 1000ms;	
+	end convert_to_text;
+	
+	thread implementation convert_to_text.standard
+	end convert_to_text.standard;
+	
+	------------------------------------------------------------------------------------------
+	
+	process speaker_controller
+		features
+			message: in data port;
+			audio: out data port;
+	end speaker_controller;
+	
+	process implementation speaker_controller.standard
+		subcomponents
+			audio_player: thread play_audio.standard;
+		connections
+			text_to_convert: port message -> audio_player.text											{ Communication_Properties::Latency => 8ms .. 12ms; };
+			audio_to_play: port audio_player.audio -> audio												{ Communication_Properties::Latency => 8ms .. 12ms; };
+	end speaker_controller.standard;
+	
+	process microphone_controller
+		features
+			sensor_ready: in event data port;
+			text: out data port;
+	end microphone_controller;
+	
+	process implementation microphone_controller.standard
+		subcomponents
+			microphone_sensor: thread listen_for_audio.standard;
+			microphone: thread convert_to_text.standard;
+		connections
+			audio_available: port microphone_sensor.audio_available -> microphone.audio					{ Communication_Properties::Latency => 8ms .. 12ms; };
+			converted_audio: port microphone.text -> text												{ Communication_Properties::Latency => 8ms .. 12ms; };
+	end microphone_controller.standard;
+	
+	------------------------------------------------------------------------------------------
+	
+	system user_interaction_subsystem
+		features
+			message_received_from_user: out event data port;
+			message_to_send_to_user: in event data port;
+	end user_interaction_subsystem;
+	
+	system implementation user_interaction_subsystem.standard
+		subcomponents
+			microphone: device basic_devices::microphone.in_vehicle;
+			speaker: device basic_devices::speaker.in_vehicle;
+			system_spoken_to: device basic_devices::sensor.system_spoken_to;
+		
+			speaker_controller: process speaker_controller.standard;
+			microphone_controller: process microphone_controller.standard;
+		
+			vehicle_processor: processor basic_computing::real_time.one_ghz;
+			vehicle_memory: memory basic_computing::ram.standard;
+			vehicle_bus: bus basic_computing::basic_bus.standard;
+		connections 
+			microphone_connection: bus access vehicle_bus <-> microphone.ba								{ Communication_Properties::Latency => 8ms .. 12ms; };
+			speaker_connection: bus access vehicle_bus <-> speaker.ba									{ Communication_Properties::Latency => 8ms .. 12ms; };
+			
+			microphone_ready: port microphone.spoken_command -> microphone_controller.sensor_ready		{ Communication_Properties::Latency => 8ms .. 12ms; };
+			audio_to_play: port speaker_controller.audio -> speaker.audio								{ Communication_Properties::Latency => 8ms .. 12ms; };
+			
+			message_received: port microphone_controller.text -> message_received_from_user				{ Communication_Properties::Latency => 8ms .. 12ms; };
+			message_to_play: port message_to_send_to_user -> speaker_controller.message					{ Communication_Properties::Latency => 8ms .. 12ms; };
+		properties
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to speaker_controller.audio_player;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to microphone_controller.microphone_sensor;
+			Allowed_Processor_Binding=>(reference (vehicle_processor)) applies to microphone_controller.microphone;
+		
+			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to speaker_controller;
+			Allowed_Memory_Binding=>(reference (vehicle_memory)) applies to microphone_controller;
+	end user_interaction_subsystem.standard;
+	
+end user_interaction_subsystem;
