@@ -12,6 +12,8 @@ The main system model is in complete_car_system.aadl. This system consists of si
 * User interaction
 * Vehicle actuation
 
+The model contains analysis contracts in a separate [library](https://github.com/bisc/collision_detection_aadl/blob/master/packages/Basic%20Types/analysis_contracts_library.aadl).
+
 This model is described in the paper ["Eliminating Inter-Domain Vulnerabilities..."] (http://dx.doi.org/10.1145/2808705.2808714) You can use it with [ACTIVE](https://github.com/bisc/active), which is based on [OSATE2](https://github.com/osate/osate2-core). 
 
 The original AADL model of (a collision prevention system for use in a telematics architecture) was done in partial fulfillment of the requirements of CPSC 8750 at Clemson University, Spring 2013. Refer to it as [![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.18611.svg)](http://dx.doi.org/10.5281/zenodo.18611)

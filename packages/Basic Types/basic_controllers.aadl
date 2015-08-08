@@ -1,0 +1,16 @@
+package basic_controllers
+	public
+	with Sensor_Properties,
+		Control_Properties,
+		Security_Properties;
+	
+	-- controllers are of category "system" due to the method of decomposition chosen for this model
+	system controller
+		properties -- assume that controllers are always working and trusted
+			Sensor_Properties::Avail => true;
+			Sensor_Properties::Pow => true; 
+			Security_Properties::Trustworthiness => true;
+	end controller; 
+		
+end basic_controllers; 
+		

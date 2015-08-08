@@ -1,6 +1,7 @@
 property set Sensor_Properties is
-	with basic_devices;
-	with basic_sensors;
+	with basic_devices,
+		basic_sensors,
+		basic_controllers;
 
 	-- variables used in the autonomous vehicle collision detection system
 	-- a reference to a (mathematical model) variable via its name
@@ -10,9 +11,9 @@ property set Sensor_Properties is
 	VarsS: list of Sensor_Properties::Variable applies to (basic_sensors::sensor);   
 	
 	-- whether a sensor or a controller is turned on (by a user/designer)
-	Pow: aadlboolean => true applies to (basic_sensors::sensor, system);
+	Pow: aadlboolean => true applies to (basic_sensors::sensor, basic_controllers::controller);
 	
 	-- whether a sensor or a controller is providing (at least some) data 
-	Avail: aadlboolean => true applies to (basic_sensors::sensor, system);
+	Avail: aadlboolean => true applies to (basic_sensors::sensor, basic_controllers::controller);
 
 end Sensor_Properties;

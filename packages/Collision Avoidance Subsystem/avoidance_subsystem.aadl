@@ -3,10 +3,11 @@
 
 package avoidance_subsystem
 	public
-	with prediction_subsystem;
-	with vehicle_actuation;
-	with basic_devices;
-	with basic_computing;
+	with prediction_subsystem,
+		vehicle_actuation,
+		basic_devices,
+		basic_computing,
+		basic_controllers;
 	
 	-- Handles data coming from the prediction system
 	thread data_handler
@@ -205,7 +206,7 @@ package avoidance_subsystem
 	
 	
 	-- The avoidance subsystem type
-	system avoidance_subsystem
+	system avoidance_subsystem extends basic_controllers::controller
 		features
 			-- Req: sensor data filtered to just that data which pertains to an impending collision
 			motion_unavoidable_port: in data port;

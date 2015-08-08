@@ -10,19 +10,18 @@ annex contract {**
 	input 
 			sensor.Pfail, system.AlphaFail 
 	output 
-			sensor, system -- in this case system is both a mode and a controller (which is a subsystem in this model)
-			-- TODO create a separate type for a controller
+			sensor, system, controller -- in this case "system" represents a system mode
 			
 	assumes -- "Component failure independence: if one component fails, another component is not more likely to fail."
 			-- sensor version
 			forall s1: sensor, s2: sensor : P(!s1.Avail || s2.Avail) <= P(!s1.Avail) + EpsilonFail  
 	assumes -- controller version
-			forall c1: system, c2: system : P(!c1.Avail || c2.Avail) <= P(!c1.Avail) + EpsilonFail
+			forall c1: controller, c2: controller : P(!c1.Avail || c2.Avail) <= P(!c1.Avail) + EpsilonFail
 			-- TODO create rigorous syntax for probabilistic statements
 	
 	guarantees -- "Functioning controllers: some sensor provides each variable that some controller expects."
 			forall m:system : 					-- system/mode
-				( exists c:system : m.contains(c) ->   -- controller
+				( exists c:controller : m.contains(c) ->   -- controller
 					( forall v:Variable : c.VarsR.contains(v) ->  -- variable	
 						( exists s:sensor : --sensor 
 							m.contains(s) && s.VarsS.contains(v)
@@ -33,7 +32,7 @@ annex contract {**
 	-- Analyzes the trustworthiness of sensors in a given security context
 	name TrustworthinessAnalysis 
 	input 
-			sensor, sensor.Placement, sensor.Pow, system.Pow, sensor.Avail, system.Avail, system.AttackM 
+			sensor, sensor.Placement, sensor.Pow, controller.Pow, sensor.Avail, controller.Avail, system.AttackM 
 	output
 			sensor.Trust
 	assumes --"Component failure dependence – some components are likely to fail together."
@@ -42,7 +41,7 @@ annex contract {**
 				P(!s1.Avail || s2.Avail) <= P(!s1.Avail) - EpsilonFail
 	assumes 
 			-- controller version
-			exists c1: system, c2: system: 
+			exists c1: controller, c2: controller: 
 				P(!c1.Avail || c2.Avail) <= P(!c1.Avail) - EpsilonFail
 	guarantees -- "Correct trustworthiness assignment – a sensor is not trustworthy if and only if it is vulnerable for the considered attacker model."
 			forall m: system, s: sensor : 
@@ -51,11 +50,11 @@ annex contract {**
 	-- Verifies if the control meets the safety requirements
 	name ControlSafetyAnalysis
 	input 
-			sensor, sensor.VarS, system, system.VarR
+			sensor, sensor.VarS, controller, controller.VarR
 	output
-			system.CtrlSafe
+			controller.CtrlSafe
 	assumes -- "Minimal sensor trust – for each untrusted sensor there is at least one different trusted sensor."
-			 forall m: system, c: system, v: Variable : -- mode, controller, and variable
+			 forall m: system, c: controller, v: Variable : -- mode, controller, and variable
 			 	m.contains(c) && c.VarsR.contains(v) -> 
 					( exists fun: fun_sensor_sensor :  -- matching function between trustworthy and untrustwortyh sensors
 						( forall su: sensor : su.Vars.contains(v) && !su.Trust ->  -- untrustworthy sensor
