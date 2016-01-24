@@ -27,7 +27,6 @@
 package basic_controllers
 	public
 	with Sensor_Properties,
-		Control_Properties,
 		Security_Properties;
 	
 	-- controllers are of category "system" due to the method of decomposition chosen for this model

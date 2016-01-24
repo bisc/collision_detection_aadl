@@ -23,10 +23,10 @@
 
 
 property set Reliability_Properties is
-with basic_devices;
+with basic_sensors;
 
 	-- probability of a sensor's random failure  
-	Pfail: aadlreal applies to (sensor);
+	Pfail: aadlreal applies to (basic_sensors::sensor);
 	
 	-- maximal acceptable probability of failure for a system 
 	AlphaFail: aadlreal applies to (system); 

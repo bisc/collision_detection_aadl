@@ -27,11 +27,7 @@
 
 package response_subsystem
 	public
-	with basic_computing,
-		basic_devices,
-		basic_controllers,
-		vehicle_actuation,
-		prediction_subsystem;
+	with basic_controllers;
 		
 	--This thread reads event/data from predictor to determine if collision is avoidable/unavoidable
 	--If unavoidable, send emergency message to emergency responders and send alert to driver of imminent crash
@@ -121,7 +117,7 @@ package response_subsystem
 			EC2: port predictor_input -> collision_event_handler.read_avoidable								{ Communication_Properties::Latency => 8ms .. 12ms; };
 			EC3: port collision_event_handler.send_emergency_message -> response_control.predict_cmd		{ Communication_Properties::Latency => 8ms .. 12ms; };
 			EC4: port collision_event_handler.send_driver_alert -> response_control.predict_cmd				{ Communication_Properties::Latency => 8ms .. 12ms; };
-			test1: port collision_event_handler.broad_test -> broadcast_tester.emergency_broad_test			{ Communication_Properties::Latency => 8ms .. 12ms; }; 
+			test1: port broadcast_tester.emergency_broad_test -> collision_event_handler.broad_test			{ Communication_Properties::Latency => 8ms .. 12ms; }; 
 			outcome1: port broad_fail -> broadcast_tester.emergency_broad_fail								{ Communication_Properties::Latency => 8ms .. 12ms; };
 			outcome2: port broad_success -> broadcast_tester.emergency_broad_success						{ Communication_Properties::Latency => 8ms .. 12ms; };	 
 			DC1: port sensor_data -> crash_data.read_vehicle_sensors										{ Communication_Properties::Latency => 8ms .. 12ms; };

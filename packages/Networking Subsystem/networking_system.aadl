@@ -120,7 +120,7 @@ package networking_subsystem
 			got_message_to_send-[cellular_sender.message]->message_sent;
 			message_sent-[shortwave_sender.message]->wait_for_message_to_send;
 			message_sent-[cellular_sender.message]->wait_for_message_to_send;
-	end control.sender;
+	end message_handling.sender;
 	
 	process implementation message_handling.receiver
 		subcomponents
@@ -138,7 +138,7 @@ package networking_subsystem
 			wait_for_message-[cellular_receiver.message]->message_received;
 			message_received-[shortwave_receiver.message]->wait_for_message;
 			message_received-[cellular_receiver.message]->wait_for_message;
-	end control.receiver;
+	end message_handling.receiver;
 	
 	------------------------------------------------------------------------------------------
 	

@@ -28,8 +28,7 @@
 package prediction_subsystem
 	public
 	with basic_computing,
-		basic_sensors,
-		vehicle_actuation;
+		basic_sensors;
 	
 	-- Each thread encodes a real-time task
 	

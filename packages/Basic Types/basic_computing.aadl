@@ -26,7 +26,6 @@
 
 package basic_computing
 	public
-	with Communication_Properties;
 	
 	-- a real-time CPU 
 	processor real_time

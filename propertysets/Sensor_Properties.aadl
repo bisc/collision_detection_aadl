@@ -23,8 +23,7 @@
 
 
 property set Sensor_Properties is
-	with basic_devices,
-		basic_sensors,
+	with basic_sensors,
 		basic_controllers;
 
 	-- variables used in the autonomous vehicle collision detection system

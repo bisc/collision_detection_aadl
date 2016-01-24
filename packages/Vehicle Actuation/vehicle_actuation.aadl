@@ -28,7 +28,6 @@
 package vehicle_actuation
 	public
 	with physical_devices;
-	with basic_devices;
 	with basic_computing;
 	
 	--Polls the ports periodically for a command from the response or avoidance systems
@@ -89,7 +88,7 @@ package vehicle_actuation
 			process_command-[command_processor.disengage]->disengage_system;
 			engage_system-[engage]->wait_for_command;
 			disengage_system-[disengage]->wait_for_command;
-	end control.standard;
+	end actuate.standard;
 	
 	------------------------------------------------------------------------------------------
 	

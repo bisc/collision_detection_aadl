@@ -27,9 +27,7 @@
 
 package avoidance_subsystem
 	public
-	with prediction_subsystem,
-		vehicle_actuation,
-		basic_devices,
+	with basic_devices,
 		basic_computing,
 		basic_controllers;
 	
